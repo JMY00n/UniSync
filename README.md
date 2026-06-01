@@ -9,7 +9,7 @@
 
 ---
 
-## ⚙️ 초기 로컬 세팅 가이드 (Setup Instructions)
+## 초기 로컬 세팅 가이드 (Setup Instructions)
 
 ### 1. 프로젝트 Import 및 서버 연결
 1. 이클립스에서 `File` > `Import` > `Existing Projects into Workspace`를 통해 본 프로젝트를 불러옵니다.
