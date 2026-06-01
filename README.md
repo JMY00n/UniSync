@@ -1,5 +1,3 @@
----
-
 ## 개발 환경 표준 (Development Environment)
 * **Java Version:** Java 17
 * **Web Server:** Apache Tomcat v9.0
@@ -7,7 +5,7 @@
 * **DBMS:** MySQL 8.0.x
 * **Database Driver:** `mysql-connector-java` (프로젝트 내 `WEB-INF/lib`에 포함됨)
 
----
+<hr />
 
 ## 초기 로컬 세팅 가이드 (Setup Instructions)
 
