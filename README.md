@@ -22,10 +22,13 @@
 -- 1. 데이터베이스(스키마) 생성
 CREATE DATABASE app;
 
-아래의 내용은 수업 시간에 한 내용이라 jpsid, jpspass로 아이디가 있으면 굳이 안 하셔도 됩니다.
+-- 아래의 내용은 수업 시간에 한 내용이라 jpsid, jpspass로 아이디가 있으면 굳이 안 하셔도 됩니다.
 -- 2. 팀 공용 사용자 계정 생성 (비밀번호: jsppass)
 CREATE USER 'jspid'@'%' IDENTIFIED BY 'jsppass';
 
 -- 3. 생성한 스키마에 대한 모든 권한 부여
 GRANT ALL PRIVILEGES ON basicjsp.* TO 'jspid'@'%';
 FLUSH PRIVILEGES;
+```
+
+
