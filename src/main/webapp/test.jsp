@@ -7,10 +7,6 @@
 <title>Insert title here</title>
 </head>
 <body>
-	<h2>테스트 입니다.</h2>
-	<h2>윤정민 로컬 PC 깃 연동 완료</h2>
-	<h2>김강일 로컬 PC 깃 연동 완료</h2>
-	<h2>김강일 로컬 PC 깃 연동 완료2</h2>
-	
+	<h2>구조 작성</h2>
 </body>
 </html>
