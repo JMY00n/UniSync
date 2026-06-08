@@ -1,35 +1,48 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-    pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="member.MemberDAO" %>
 <%@ page import="member.MemberVO" %>
-<%
-	String user_id = request.getParameter("user_id");
-	String password = request.getParameter("password");
-	int role = Integer.parseInt(request.getParameter("role"));
-	
-	MemberDAO mDAO = MemberDAO.getinstance();
-	// mDAO.login으로 유저 체크하고 이후 로직처리
-	int result = mDAO.login(user_id, password, role);
-	if (result == 1) {
-		MemberVO member = mDAO.getMember(user_id);
-		session.setAttribute("user_id", user_id);
-		session.setAttribute("role", role);
-		session.setAttribute("name", member.getName());
-		
-		response.sendRedirect("../main/main.jsp");
-	} else if (result == -2) {
-		out.print("Server ERROR!!!!");
-	} else {
-		out.print("아이디 또는 비밀번호또는 권한이 일치하지 않습니다.");
-	}
-%>
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>로그인 중...</title>
-</head>
-<body>
 
-</body>
-</html>
+<% request.setCharacterEncoding("utf-8"); %>
+
+<%
+    String user_id  = request.getParameter("user_id");
+    String password = request.getParameter("password");
+
+    MemberDAO mDAO = MemberDAO.getinstance();
+    int result = -2;
+    try {
+        result = mDAO.login(user_id, password);
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+
+    if (result == 1) {
+        MemberVO member = null;
+        try { member = mDAO.getMember(user_id); } catch (Exception e) { e.printStackTrace(); }
+        session.setAttribute("user_id", member.getUser_id());
+        session.setAttribute("name",    member.getName());
+        session.setAttribute("role",    member.getRole());
+        response.sendRedirect("../dashboard/dashboard.jsp");
+    } else if (result == 0) {
+%>
+        <script>
+            alert("비밀번호가 맞지 않습니다.");
+            history.go(-1);
+        </script>
+<%
+    } else if (result == -1) {
+%>
+        <script>
+            alert("등록된 아이디가 아닙니다.");
+            history.go(-1);
+        </script>
+<%
+    } else {
+%>
+        <script>
+            alert("서버 오류가 발생했습니다.");
+            history.go(-1);
+        </script>
+<%
+    }
+%>
