@@ -103,18 +103,19 @@
       </a>
 
       <div class="form-header">
-        <div class="form-title"><%= roleLabel %> 회원가입</div>
-        <% if (role == 1) { %>
-        <div class="role-badge badge-prof">
-          <img src="../images/icons/briefcase-business.svg" width="12" height="12" alt="교수">
-          교수자 가입
+        <div style="display:flex; align-items:center; gap:14px; margin-bottom:4px;">
+          <div class="reg-icon-box <%= role == 1 ? "reg-icon-prof" : "reg-icon-student" %>">
+            <% if (role == 1) { %>
+            <img src="../images/icons/briefcase-business.svg" width="24" height="24" alt="교수" style="filter:brightness(0) invert(1);">
+            <% } else { %>
+            <img src="../images/icons/graduation-cap.svg" width="24" height="24" alt="학생" style="filter:brightness(0) invert(1);">
+            <% } %>
+          </div>
+          <div>
+            <div class="form-title" style="margin-bottom:1px;"><%= roleLabel %> 회원가입</div>
+            <div class="form-sub" style="margin-top:1px;"><%= role == 1 ? "교번과 비밀번호를 입력하여 가입하세요." : "학번과 비밀번호를 입력하여 가입하세요." %></div>
+          </div>
         </div>
-        <% } else { %>
-        <div class="role-badge badge-student">
-          <img src="../images/icons/graduation-cap.svg" width="12" height="12" alt="학생">
-          학생 가입
-        </div>
-        <% } %>
       </div>
 
       <form name="member_form" method="post" action="registerPro.jsp" onsubmit="return validateForm()" autocomplete="off">

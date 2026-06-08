@@ -457,19 +457,21 @@ body {
   background: var(--surface);
   border: 1.5px solid var(--border-m);
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 500;
   font-family: var(--font);
   color: var(--text2);
   cursor: pointer;
-  padding: 8px 14px;
-  margin-bottom: 16px;
+  padding: 9px 16px;
+  margin-bottom: 24px;
   transition: all 0.14s;
+  text-decoration: none;
 }
 .back-btn:hover {
   background: var(--bg);
   border-color: rgba(0,0,0,0.22);
   color: var(--text);
+  text-decoration: none;
 }
 
 /* 역할 뱃지 */
@@ -702,3 +704,18 @@ body {
   filter: none;
   vertical-align: middle;
 }
+
+/* 회원가입 타이틀 아이콘 박스 */
+.reg-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.reg-icon-student { background: var(--primary); }
+.reg-icon-prof    { background: var(--primary); }
+.form-title { margin-bottom: 2px; }
+.form-header .form-sub { margin-top: 0; }
