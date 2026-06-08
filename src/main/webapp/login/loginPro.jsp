@@ -1,6 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
     pageEncoding="UTF-8"%>
 <%@ page import="member.MemberDAO" %>
+<%@ page import="member.MemberVO" %>
 <%
 	String user_id = request.getParameter("user_id");
 	String password = request.getParameter("password");
@@ -10,7 +11,12 @@
 	// mDAO.login으로 유저 체크하고 이후 로직처리
 	int result = mDAO.login(user_id, password, role);
 	if (result == 1) {
-		out.print("로그인 성공");
+		MemberVO member = mDAO.getMember(user_id);
+		session.setAttribute("user_id", user_id);
+		session.setAttribute("role", role);
+		session.setAttribute("name", member.getName());
+		
+		response.sendRedirect("../main/main.jsp");
 	} else if (result == -2) {
 		out.print("Server ERROR!!!!");
 	} else {
