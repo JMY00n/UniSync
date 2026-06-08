@@ -113,5 +113,40 @@ public class MemberDAO {
 			return -2;
 		}
 	}
+	
+	// 회원 가져오기
+	public MemberVO getMember(String user_id) throws SQLException {
+		Connection conn = null;
+		PreparedStatement pstmt = null;
+		ResultSet rs = null;
+		MemberVO member = null;
+		
+		try {
+			conn = getConnection();
+			String sql = "SELECT * FROM member WHERE user_id = ?";
+			pstmt = conn.prepareStatement(sql);
+			pstmt.setString(1, user_id);
+			rs = pstmt.executeQuery();
+			if (rs.next()) {
+				member = new MemberVO();
+				member.setUser_id(rs.getString("user_id"));
+				member.setPassword(rs.getString("password"));
+				member.setName(rs.getString("name"));
+				member.setRole(rs.getInt("role"));
+				
+				return member;
+			}
+			
+		} catch (Exception error) {
+			System.out.println("getMember(Type:MemberDAO)에서 에러 발생!!");
+			System.out.println(error);
+		} finally {
+			if (conn != null) conn.close();
+			if (pstmt != null) pstmt.close();
+			if (rs != null) rs.close();
+		}
+		
+		return null;
+	}
 
 }
