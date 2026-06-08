@@ -11,10 +11,10 @@
 	int result = mDAO.login(user_id, password, role);
 	if (result == 1) {
 		out.print("로그인 성공");
-	} else if (result == 0) {
-		out.print("아이디 또는 비밀번호가 일치하지 않습니다.");
-	} else {
+	} else if (result == -2) {
 		out.print("Server ERROR!!!!");
+	} else {
+		out.print("아이디 또는 비밀번호또는 권한이 일치하지 않습니다.");
 	}
 %>
 <!DOCTYPE html>

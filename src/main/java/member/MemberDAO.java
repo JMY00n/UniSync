@@ -66,7 +66,7 @@ public class MemberDAO {
 			String sql = "SELECT password FROM member WHERE user_id = ? AND role = ?";
 			pstmt = conn.prepareStatement(sql);
 			pstmt.setString(1, user_id);
-			pstmt.setInt(1, role);
+			pstmt.setInt(2, role);
 			
 			rs = pstmt.executeQuery();
 			
@@ -85,7 +85,7 @@ public class MemberDAO {
 			return -2; // 시스템 에러 시에는 -2 리턴
 		} finally {
 			if (rs != null) rs.close();
-			if (pstmt != null) conn.close();
+			if (pstmt != null) pstmt.close();
 			if (conn != null) conn.close();
 		}
 		

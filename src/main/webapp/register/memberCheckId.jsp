@@ -27,8 +27,10 @@
 		<p style="color: red;">이미 존재하는 아이디입니다.</p>
 		<button onclick="self.close()">닫기</button>
 	<% } else { %>
-		<p style="color: blue;">가입 가능한 아이디입니다.</p>
-		<button onclick="useId()">이 아이디 사용하기</button>
+		<div style="text-align:center;">
+			<p style="color: blue;">가입 가능한 아이디입니다.</p>
+			<button onclick="useId()">이 아이디 사용하기</button>
+		</div>
 	<% } %>
 </body>
 </html>
