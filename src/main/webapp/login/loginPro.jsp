@@ -19,30 +19,21 @@
     if (result == 1) {
         MemberVO member = null;
         try { member = mDAO.getMember(user_id); } catch (Exception e) { e.printStackTrace(); }
-        session.setAttribute("user_id", member.getUser_id());
-        session.setAttribute("name",    member.getName());
-        session.setAttribute("role",    member.getRole());
+        session.setAttribute("user_id",   member.getUser_id());
+        session.setAttribute("name",      member.getName());
+        session.setAttribute("role",      member.getRole());
         response.sendRedirect("../dashboard/dashboard.jsp");
+
     } else if (result == 0) {
-%>
-        <script>
-            alert("비밀번호가 맞지 않습니다.");
-            history.go(-1);
-        </script>
-<%
+        request.setAttribute("loginError", "아이디 또는 비밀번호가 올바르지 않습니다.");
+        request.getRequestDispatcher("/login/login.jsp").forward(request, response);
+
     } else if (result == -1) {
-%>
-        <script>
-            alert("등록된 아이디가 아닙니다.");
-            history.go(-1);
-        </script>
-<%
+        request.setAttribute("loginError", "등록되지 않은 아이디입니다.");
+        request.getRequestDispatcher("/login/login.jsp").forward(request, response);
+
     } else {
-%>
-        <script>
-            alert("서버 오류가 발생했습니다.");
-            history.go(-1);
-        </script>
-<%
+        request.setAttribute("loginError", "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
+        request.getRequestDispatcher("/login/login.jsp").forward(request, response);
     }
 %>

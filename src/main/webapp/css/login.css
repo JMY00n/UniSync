@@ -610,14 +610,23 @@ body {
 }
 
 /* ── 로그인 에러 메시지 ── */
-.login-error {
-  background: #FEE2E2;
-  border: 1px solid #FECACA;
-  color: #DC2626;
-  padding: 10px 14px;
+/* 로그인 에러 메시지 */
+.login-error-wrap {
+  background-image: linear-gradient(90deg, #FF4D4D, #FF9999);
   border-radius: var(--r);
+  padding: 1.5px;
+  margin-bottom: 16px;
+}
+.login-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface);
+  border-radius: calc(var(--r) - 1.5px);
+  color: #CC2222;
+  padding: 11px 13px;
   font-size: 13px;
-  margin-bottom: 14px;
+  font-weight: 500;
 }
 
 /* ── role 뱃지 ── */

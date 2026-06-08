@@ -34,7 +34,7 @@
           <img src="${pageContext.request.contextPath}/images/icons/message-square.svg" width="18" height="18" alt="Q&A">
         </div>
         <div class="feature-text">
-          <strong>실시간 Q&amp;A</strong>
+          <strong>실시간 익명 Q&amp;A</strong>
           <span>질문 부담 없이, 수업에 집중</span>
         </div>
       </div>
@@ -73,8 +73,11 @@
         <%-- 로그인 실패 메시지 --%>
         <% String loginError = (String) request.getAttribute("loginError");
            if (loginError != null) { %>
-          <div class="login-error">
-            <%= loginError %>
+          <div class="login-error-wrap">
+            <div class="login-error">
+              <img src="${pageContext.request.contextPath}/images/icons/x.svg" width="15" height="15" alt="오류" style="filter:brightness(0) saturate(100%) invert(25%) sepia(80%) saturate(1500%) hue-rotate(330deg); flex-shrink:0;">
+              <%= loginError %>
+            </div>
           </div>
         <% } %>
 
