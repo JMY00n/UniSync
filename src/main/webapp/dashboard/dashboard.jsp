@@ -15,5 +15,6 @@
 	로그인된 아이디 : <%= user_id %><br />
 	로그인된 권한 : <%= role == 0 ? "학생" : "교사" %><br />
 	로그인한 이름 : <%= name %>
+	<button onclick="location.href='../login/logoutPro.jsp'">로그아웃</button>
 </body>
 </html>
