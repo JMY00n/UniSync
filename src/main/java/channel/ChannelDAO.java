@@ -30,7 +30,8 @@ public class ChannelDAO {
     }
 
     // 1. 채널(강의실) 생성 메서드
-    public void createChannel(ChannelVO channel) throws SQLException {
+ // 채널(강의실) 생성 메서드 (boolean을 리턴하도록 확실하게 수정!)
+    public boolean createChannel(ChannelVO channel) {
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
@@ -40,13 +41,17 @@ public class ChannelDAO {
             pstmt.setString(1, channel.getUser_id());
             pstmt.setString(2, channel.getChannel_name());
             pstmt.setString(3, channel.getEntry_code());
-            pstmt.executeUpdate();
+            
+            int result = pstmt.executeUpdate();
+            return result > 0; // 정상적으로 1줄이 DB에 들어가면 true 반환
+            
         } catch (Exception e) {
-            System.out.println("채널 생성 실패");
+            System.out.println("🚨 [ChannelDAO] 채널 생성 중 에러 발생!");
             e.printStackTrace();
+            return false; // 에러가 나면 false 반환
         } finally {
-            if (pstmt != null) pstmt.close();
-            if (conn != null) conn.close();
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
         }
     }
     
@@ -167,5 +172,92 @@ public class ChannelDAO {
             if (conn != null) conn.close();
         }
         return list;
+    }
+    
+ // 5. 방 번호(channel_id)로 특정 방의 상세 정보 가져오기
+    public ChannelVO getChannelById(int channel_id) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        ChannelVO channel = null;
+        
+        try {
+            conn = getConnection();
+            String sql = "SELECT * FROM channel WHERE channel_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, channel_id);
+            rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                channel = new ChannelVO();
+                channel.setChannel_id(rs.getInt("channel_id"));
+                channel.setUser_id(rs.getString("user_id"));
+                channel.setChannel_name(rs.getString("channel_name"));
+                channel.setEntry_code(rs.getString("entry_code"));
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch(Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch(Exception e) {}
+            if (conn != null) try { conn.close(); } catch(Exception e) {}
+        }
+        return channel;
+    }
+    
+ // 6. 강의실(채널) 삭제 기능
+    public boolean deleteChannel(int channel_id) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = getConnection();
+            
+            // 1단계: 외래키 충돌을 막기 위해 학생 가입 명단(channel_list)에서 해당 방 데이터 먼저 삭제
+            String sql1 = "DELETE FROM channel_list WHERE channel_id = ?";
+            pstmt = conn.prepareStatement(sql1);
+            pstmt.setInt(1, channel_id);
+            pstmt.executeUpdate();
+            pstmt.close(); // 첫 번째 쿼리 닫기
+            
+            // 2단계: 진짜 강의실(channel) 데이터 삭제
+            String sql2 = "DELETE FROM channel WHERE channel_id = ?";
+            pstmt = conn.prepareStatement(sql2);
+            pstmt.setInt(1, channel_id);
+            int result = pstmt.executeUpdate();
+            
+            return result > 0; // 정상적으로 지워지면 true 반환
+            
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 채널 삭제 중 에러 발생!");
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+    }
+    
+ // 7. 강의실(채널) 이름 수정 기능
+    public boolean updateChannelName(int channel_id, String new_name) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = getConnection();
+            String sql = "UPDATE channel SET channel_name = ? WHERE channel_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, new_name);
+            pstmt.setInt(2, channel_id);
+            int result = pstmt.executeUpdate();
+            
+            return result > 0; // 정상적으로 수정되면 true 반환
+            
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 채널 이름 수정 중 에러 발생!");
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
     }
 }

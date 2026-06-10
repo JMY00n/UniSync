@@ -43,11 +43,7 @@
         <li>
             <span class="col1">&nbsp;&nbsp;강의실 이름</span>
             <span class="col2"><input name="channel_name" type="text" placeholder="예: 2026 자바프로그래밍" required></span>
-        </li>       
-        <li>
-            <span class="col1">&nbsp;&nbsp;입장 코드</span>
-            <span class="col2"><input name="entry_code" type="text" placeholder="예: JAVA2026" required></span>
-        </li>           
+        </li>        
     </ul>
     <ul class="buttons">
         <li><button type="submit">채널 생성</button></li>
