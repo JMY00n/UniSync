@@ -25,6 +25,7 @@
 <title>UniSync 대시보드</title>
 <link href="../css/common.css" rel="stylesheet" type="text/css">
 <link href="../css/board.css" rel="stylesheet" type="text/css">
+<link href="../css/profile.css" rel="stylesheet" type="text/css">
 <style>
     .dashboard_main { width: 680px; margin: 30px auto; padding: 20px; border: 1px solid #ccc; font-family: sans-serif; border-radius: 8px; }
     .channel_list_box { margin-top: 20px; border-top: 2px solid #516e7f; padding-top: 15px; }
@@ -51,7 +52,10 @@
     <div style="background: #f1f8ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
         <b>로그인 아이디:</b> <%= userId %> <br>
         <b>현재 권한:</b> <%= role == 0 ? "<span style='color:green;'>학생</span>" : "<span style='color:blue;'>교수</span>" %> <br>
-        <b>사용자 이름:</b> <%= name %> 
+        <div class="profile-circle">
+        	<%= name.substring(0, 1) %>
+        </div>
+        <b>사용자 이름:</b> <%= name %>
         <button type="button" onclick="location.href='../login/logoutPro.jsp'" style="float: right;">로그아웃</button>
         <div style="clear: both;"></div>
     </div>

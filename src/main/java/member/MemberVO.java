@@ -31,5 +31,4 @@ public class MemberVO {
 		this.role = role;
 	}
 	
-	
 }

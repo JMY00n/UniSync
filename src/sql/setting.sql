@@ -15,3 +15,4 @@ SELECT USER();
 
 -- 깃으로 받아온 프로젝트 파일과 데이터베이스 연동
 -- 수업 자료 중 'Server Side Programming - 11' 데이터베이스와 JSP연동 12 페이지 부터 참조
+
