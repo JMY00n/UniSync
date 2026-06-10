@@ -11,6 +11,7 @@
 <head>
 <meta charset="UTF-8">
 <title>아이디 중복 확인</title>
+<link rel="stylesheet" href="../css/common.css">
 <link rel="stylesheet" href="../css/login.css">
 <style>
   body {

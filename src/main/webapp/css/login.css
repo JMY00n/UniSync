@@ -1,47 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700&family=Plus+Jakarta+Sans:wght@700;800&family=JetBrains+Mono:wght@500&display=swap');
+@charset "UTF-8";
+/* ══════════════════════════════════════════════
+   로그인 / 회원가입 전용 스타일 (login.css)
+   토큰·폰트·전역 리셋은 common.css 로 분리 → common.css 를 먼저 link
+══════════════════════════════════════════════ */
 
-/* ── 토큰 ── */
-:root {
-  --primary:       #342F92;
-  --primary-hover: #2C2880;
-  --primary-dark:  #231F6B;
-  --primary-light: #EEEDF9;
-  --primary-mid:   #6B65C8;
-  --primary-glow:  rgba(52, 47, 146, 0.28);
-
-  --success: #1D9E75;
-  --warning: #E09A2B;
-  --danger:  #D94F4F;
-
-  --bg:       #F4F4F2;
-  --surface:  #FFFFFF;
-  --border:   rgba(0,0,0,0.08);
-  --border-m: rgba(0,0,0,0.14);
-
-  --text:  #17171A;
-  --text2: #52525B;
-  --text3: #A1A1AA;
-  --text4: #D4D4D8;
-
-  --font:  'Noto Sans KR', -apple-system, sans-serif;
-  --brand: 'Plus Jakarta Sans', sans-serif;
-  --mono:  'JetBrains Mono', monospace;
-
-  --r:   8px;
-  --rl:  14px;
-  --rxl: 22px;
-}
-
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { font-size: 14px; }
-body {
-  font-family: var(--font);
-  background: var(--bg);
-  color: var(--text);
-  min-height: 100vh;
-  display: flex;
-  -webkit-font-smoothing: antialiased;
-}
+/* 로그인 2단 레이아웃을 위해 body 를 flex 컨테이너로 */
+body { display: flex; }
 
 /* ══════════════════════════════
    2단 레이아웃
@@ -474,26 +438,6 @@ body {
   text-decoration: none;
 }
 
-/* 역할 뱃지 */
-.role-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-.badge-student {
-  background: #E8F5E9;
-  color: #2E7D32;
-}
-.badge-prof {
-  background: var(--primary-light);
-  color: var(--primary);
-}
-
 /* 교수 인증코드 섹션 */
 .code-section {
   background: var(--bg);
@@ -631,7 +575,7 @@ body {
   font-weight: 500;
 }
 
-/* ── role 뱃지 ── */
+/* ── role 뱃지 (중복 정의 통합) ── */
 .role-badge {
   display: inline-flex;
   align-items: center;
@@ -641,6 +585,7 @@ body {
   padding: 4px 10px;
   border-radius: 20px;
   margin-top: 8px;
+  margin-bottom: 6px;
 }
 .badge-student {
   background: var(--primary-light);

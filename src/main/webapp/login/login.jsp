@@ -11,6 +11,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>UniSync — 로그인</title>
+  <link rel="stylesheet" href="${pageContext.request.contextPath}/css/common.css">
   <link rel="stylesheet" href="${pageContext.request.contextPath}/css/login.css">
 </head>
 <body>
@@ -34,7 +35,7 @@
           <img src="${pageContext.request.contextPath}/images/icons/message-square.svg" width="18" height="18" alt="Q&A">
         </div>
         <div class="feature-text">
-          <strong>실시간 익명 Q&amp;A</strong>
+          <strong>실시간 Q&amp;A</strong>
           <span>질문 부담 없이, 수업에 집중</span>
         </div>
       </div>
