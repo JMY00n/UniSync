@@ -617,6 +617,28 @@ body { display: flex; }
   border-color: var(--primary);
 }
 
+/* 중복확인 완료 상태 */
+.btn-id-check.btn-id-checked {
+  background: #E1F5EE;
+  color: var(--success);
+  border-color: var(--success);
+  cursor: default;
+}
+.btn-id-check.btn-id-checked:hover { background: #E1F5EE; }
+
+/* 중복확인 결과 메시지 */
+.id-check-msg {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  min-height: 16px;
+}
+.id-check-msg.ok   { color: var(--success); }
+.id-check-msg.warn { color: var(--danger); }
+
+/* 확인 통과한 아이디 입력칸 */
+.field-input.input-ok { border-color: var(--success); }
+
 /* 회원가입 폼 위치 조정 */
 .register-inner {
   padding-top: 0;

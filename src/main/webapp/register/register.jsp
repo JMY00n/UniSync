@@ -31,6 +31,42 @@
         );
     }
 
+    // 팝업에서 "이 아이디 사용하기" 누르면 호출됨
+    var checkedId = "";
+    function onIdChecked() {
+        var input = document.getElementById("user_id");
+        var btn   = document.getElementById("idCheckBtn");
+        var msg   = document.getElementById("idCheckMsg");
+
+        isIdChecked = true;
+        checkedId   = input.value;
+
+        input.classList.add("input-ok");
+        btn.textContent = "확인 완료";
+        btn.classList.add("btn-id-checked");
+        btn.disabled = true;
+
+        msg.textContent = "✓ 사용 가능한 아이디입니다.";
+        msg.className   = "id-check-msg ok";
+    }
+
+    // 확인 후 아이디를 바꾸면 다시 검사하도록 초기화
+    function resetIdCheck() {
+        var input = document.getElementById("user_id");
+        if (input.value === checkedId) return;
+
+        var btn = document.getElementById("idCheckBtn");
+        var msg = document.getElementById("idCheckMsg");
+
+        isIdChecked = false;
+        input.classList.remove("input-ok");
+        btn.textContent = "중복 확인";
+        btn.classList.remove("btn-id-checked");
+        btn.disabled = false;
+        msg.textContent = "";
+        msg.className   = "id-check-msg";
+    }
+
     function validateForm() {
         if (!isIdChecked) {
             alert("아이디 중복 검사를 먼저 해주세요.");
@@ -69,7 +105,7 @@
           <img src="../images/icons/message-square.svg" width="18" height="18" alt="Q&A">
         </div>
         <div class="feature-text">
-          <strong>실시간 Q&amp;A</strong>
+          <strong>실시간 익명 Q&amp;A</strong>
           <span>질문 부담 없이, 수업에 집중</span>
         </div>
       </div>
@@ -127,9 +163,11 @@
           <label class="field-label" for="user_id">아이디 (<%= role == 1 ? "교번" : "학번" %>)</label>
           <div style="display:flex; gap:8px;">
             <input class="field-input" id="user_id" name="user_id" type="text"
-                   placeholder="<%= role == 1 ? "예: P2024001" : "예: 2021038" %>" required style="flex:1;">
-            <button type="button" onclick="checkId()" class="btn-id-check">중복 확인</button>
+                   placeholder="<%= role == 1 ? "예: P2024001" : "예: 2021038" %>" required style="flex:1;"
+                   oninput="resetIdCheck()">
+            <button type="button" id="idCheckBtn" onclick="checkId()" class="btn-id-check">중복 확인</button>
           </div>
+          <p id="idCheckMsg" class="id-check-msg"></p>
         </div>
 
         <div class="field-group">

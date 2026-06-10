@@ -80,6 +80,7 @@
 <script>
   function useId() {
     opener.isIdChecked = true;
+    if (typeof opener.onIdChecked === "function") opener.onIdChecked();
     self.close();
   }
 </script>
