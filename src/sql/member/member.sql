@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS member;
 -- 3. 외래키 체크 다시 활성화
 SET FOREIGN_KEY_CHECKS = 1;
 
+DROP TABLE member;
 
 -- ════════════════ [ 테이블 생성 시작 ] ════════════════
 
@@ -20,7 +21,8 @@ CREATE TABLE member (
     user_id VARCHAR(20) PRIMARY KEY,
     password VARCHAR(50) NOT NULL,
     name VARCHAR(30) NOT NULL,
-    role INT NOT NULL -- '0: student', '1: professor'
+    role INT NOT NULL, -- '0: student', '1: professor'
+    profile VARCHAR(255) NOT NULL
 );
 
 -- 2. 채널(방) 테이블 (Channel)
@@ -76,3 +78,4 @@ CREATE TABLE comment (
 
 SELECT * FROM channel;
 SELECT * FROM channel_list;
+SELECT * FROM member;
