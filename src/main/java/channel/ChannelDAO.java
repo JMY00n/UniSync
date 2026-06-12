@@ -361,4 +361,204 @@ public class ChannelDAO {
         }
         return list;
     }
+
+    // ═══════════════════════════════════════════════════════════════
+    // [대시보드 추가분] 통계 / 최근활동 조회 메서드
+    // ═══════════════════════════════════════════════════════════════
+
+    // 13. 특정 강의실의 수강생 수 (channel_list 인원 수)
+    public int countStudents(int channel_id) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int cnt = 0;
+        try {
+            conn = getConnection();
+            String sql = "SELECT COUNT(*) FROM channel_list WHERE channel_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, channel_id);
+            rs = pstmt.executeQuery();
+            if (rs.next()) cnt = rs.getInt(1);
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 강의실 수강생 수 조회 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return cnt;
+    }
+
+    // 14. 특정 강의실의 게시판 수 (subboard 개수)
+    public int countBoards(int channel_id) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int cnt = 0;
+        try {
+            conn = getConnection();
+            String sql = "SELECT COUNT(*) FROM subboard WHERE channel_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, channel_id);
+            rs = pstmt.executeQuery();
+            if (rs.next()) cnt = rs.getInt(1);
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 강의실 게시판 수 조회 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return cnt;
+    }
+
+    // 15. 교수의 전체 강의실 통합 수강생 수 (여러 방에 중복 가입한 학생은 1명으로 - DISTINCT)
+    public int countTotalStudents(String professorId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int cnt = 0;
+        try {
+            conn = getConnection();
+            String sql = "SELECT COUNT(DISTINCT cl.user_id) "
+                       + "FROM channel_list cl JOIN channel c ON cl.channel_id = c.channel_id "
+                       + "WHERE c.user_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, professorId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) cnt = rs.getInt(1);
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 총 수강생 수 조회 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return cnt;
+    }
+
+    // 16. 이번 주(최근 7일) 새 글 수 - 교수가 개설한 강의실 전체 기준
+    public int countWeeklyMessagesByProfessor(String professorId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int cnt = 0;
+        try {
+            conn = getConnection();
+            String sql = "SELECT COUNT(*) FROM message m "
+                       + "JOIN channel c ON m.channel_id = c.channel_id "
+                       + "WHERE c.user_id = ? AND m.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, professorId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) cnt = rs.getInt(1);
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 이번 주 새 글 수 조회(교수) 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return cnt;
+    }
+
+    // 17. 이번 주(최근 7일) 새 글 수 - 학생이 참여 중인 강의실 전체 기준
+    public int countWeeklyMessagesByStudent(String studentId) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        int cnt = 0;
+        try {
+            conn = getConnection();
+            String sql = "SELECT COUNT(*) FROM message m "
+                       + "JOIN channel_list cl ON m.channel_id = cl.channel_id "
+                       + "WHERE cl.user_id = ? AND m.created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, studentId);
+            rs = pstmt.executeQuery();
+            if (rs.next()) cnt = rs.getInt(1);
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 이번 주 새 글 수 조회(학생) 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return cnt;
+    }
+
+    // 18. 최근 활동(전체 강의실 최근 글) - 교수: 본인이 개설한 강의실 기준
+    public ArrayList<ActivityVO> getRecentActivityByProfessor(String professorId, int limit) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        ArrayList<ActivityVO> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            String sql = "SELECT m.title, m.board_name, m.created_at, c.channel_name "
+                       + "FROM message m JOIN channel c ON m.channel_id = c.channel_id "
+                       + "WHERE c.user_id = ? ORDER BY m.created_at DESC LIMIT ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, professorId);
+            pstmt.setInt(2, limit);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                ActivityVO a = new ActivityVO();
+                a.setTitle(rs.getString("title"));
+                a.setBoard_name(rs.getString("board_name"));
+                a.setCreated_at(rs.getTimestamp("created_at"));
+                a.setChannel_name(rs.getString("channel_name"));
+                list.add(a);
+            }
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 최근 활동 조회(교수) 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return list;
+    }
+
+    // 19. 최근 활동(전체 강의실 최근 글) - 학생: 본인이 참여 중인 강의실 기준
+    public ArrayList<ActivityVO> getRecentActivityByStudent(String studentId, int limit) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        ArrayList<ActivityVO> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            String sql = "SELECT m.title, m.board_name, m.created_at, c.channel_name "
+                       + "FROM message m "
+                       + "JOIN channel c ON m.channel_id = c.channel_id "
+                       + "JOIN channel_list cl ON cl.channel_id = c.channel_id "
+                       + "WHERE cl.user_id = ? ORDER BY m.created_at DESC LIMIT ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, studentId);
+            pstmt.setInt(2, limit);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                ActivityVO a = new ActivityVO();
+                a.setTitle(rs.getString("title"));
+                a.setBoard_name(rs.getString("board_name"));
+                a.setCreated_at(rs.getTimestamp("created_at"));
+                a.setChannel_name(rs.getString("channel_name"));
+                list.add(a);
+            }
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 최근 활동 조회(학생) 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return list;
+    }
 }
