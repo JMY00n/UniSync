@@ -7,6 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import java.sql.Statement;
 
 public class ChannelDAO {
     private static ChannelDAO instance = new ChannelDAO();
@@ -31,28 +32,71 @@ public class ChannelDAO {
 
     // 1. 채널(강의실) 생성 메서드
  // 채널(강의실) 생성 메서드 (boolean을 리턴하도록 확실하게 수정!)
+ // 1. 채널(강의실) 및 3대 서브보드(공지사항, 강의자료, Q&A) 동시 생성 메서드
     public boolean createChannel(ChannelVO channel) {
         Connection conn = null;
         PreparedStatement pstmt = null;
+        PreparedStatement pstmtBoard = null;
+        ResultSet rs = null;
+        boolean isSuccess = false;
+
         try {
             conn = getConnection();
-            String sql = "INSERT INTO channel(user_id, channel_name, entry_code) VALUES(?, ?, ?)";
-            pstmt = conn.prepareStatement(sql);
+            
+            // [팩트 체크] 트랜잭션 시작! 
+            // (방 생성과 게시판 생성을 하나의 덩어리로 묶어서, 하나라도 실패하면 전부 취소시킴)
+            conn.setAutoCommit(false);
+
+            // 1단계: 방(channel) 데이터 인서트
+            // Statement.RETURN_GENERATED_KEYS를 쓰면 방금 INSERT 되면서 생긴 자동 번호(channel_id)를 바로 빼올 수 있어.
+            String sql1 = "INSERT INTO channel(user_id, channel_name, entry_code) VALUES(?, ?, ?)";
+            pstmt = conn.prepareStatement(sql1, Statement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, channel.getUser_id());
             pstmt.setString(2, channel.getChannel_name());
             pstmt.setString(3, channel.getEntry_code());
-            
-            int result = pstmt.executeUpdate();
-            return result > 0; // 정상적으로 1줄이 DB에 들어가면 true 반환
-            
+
+            int result1 = pstmt.executeUpdate();
+
+            if (result1 > 0) {
+                // 2단계: 방금 생성된 방 번호(channel_id) 가져오기
+                rs = pstmt.getGeneratedKeys();
+                int newChannelId = -1;
+                if (rs.next()) {
+                    newChannelId = rs.getInt(1); // 방금 생긴 방의 PK 값
+                }
+
+                if (newChannelId != -1) {
+                    // 3단계: 알아낸 방 번호로 3개의 기본 서브보드 자동 생성
+                    String sql2 = "INSERT INTO subboard(board_name, channel_id) VALUES(?, ?)";
+                    pstmtBoard = conn.prepareStatement(sql2);
+
+                    String[] boardNames = {"공지사항", "강의자료", "Q&A"};
+                    for (String bName : boardNames) {
+                        pstmtBoard.setString(1, bName);
+                        pstmtBoard.setInt(2, newChannelId);
+                        pstmtBoard.executeUpdate(); // 3번 반복하면서 INSERT
+                    }
+
+                    // 여기까지 아무 에러 없이 왔다면 DB에 최종 확정(Commit)
+                    conn.commit();
+                    isSuccess = true;
+                } else {
+                    conn.rollback(); // 방 번호를 못 가져왔으면 취소(Rollback)
+                }
+            }
         } catch (Exception e) {
-            System.out.println("🚨 [ChannelDAO] 채널 생성 중 에러 발생!");
+            System.out.println("🚨 [ChannelDAO] 채널 및 서브보드 생성 중 에러 발생!");
             e.printStackTrace();
-            return false; // 에러가 나면 false 반환
+            try { if (conn != null) conn.rollback(); } catch (Exception ex) {} // 에러 발생 시 전부 취소
         } finally {
+            // 커넥션 돌려주기 전에 원래 상태(자동 커밋)로 복구
+            try { if (conn != null) conn.setAutoCommit(true); } catch (Exception e) {} 
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmtBoard != null) try { pstmtBoard.close(); } catch (Exception e) {}
             if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
             if (conn != null) try { conn.close(); } catch (Exception e) {}
         }
+        return isSuccess;
     }
     
     // 2. 입장 코드로 채널 존재 여부 및 정보 확인 (학생용)
