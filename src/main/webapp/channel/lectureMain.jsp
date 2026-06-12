@@ -207,8 +207,92 @@
                 
             <%-- ========================= [실시간 Q&A] ========================= --%>
             <% } else if(menu.equals("qna")) { %>
-                <h3>💬 실시간 Q&A</h3>
-                <p style="color: gray;">여기에 새로고침 없이 대화가 이어지는 채팅창이 뜰 예정입니다.</p>
+                <div style="overflow: hidden; margin-bottom: 15px;">
+                    <h3 style="float: left; margin: 0;">💬 실시간 Q&A</h3>
+                </div>
+                
+                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px;">
+                    <textarea id="qnaContent" rows="2" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: none;" placeholder="궁금한 점을 자유롭게 질문해 보세요! (엔터 금지)"></textarea>
+                    <button type="button" onclick="submitQna()" style="padding: 0 25px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">질문<br>등록</button>
+                </div>
+                
+                <div id="qnaListArea" style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; min-height: 300px; max-height: 500px; overflow-y: auto;">
+                    </div>
+
+                <script>
+                    const channelId = <%= channel_id %>;
+
+                    // 목록 가져오기
+                    function loadQnaList() {
+                        fetch('getQnaListAjax.jsp?channel_id=' + channelId)
+                        .then(response => response.text())
+                        .then(html => {
+                            document.getElementById('qnaListArea').innerHTML = html;
+                        })
+                        .catch(error => console.error('Error:', error));
+                    }
+
+                    // 질문 등록하기
+                    function submitQna() {
+                        const contentObj = document.getElementById('qnaContent');
+                        const content = contentObj.value.trim();
+                        
+                        if(!content) {
+                            alert('질문 내용을 입력해주세요.');
+                            contentObj.focus();
+                            return;
+                        }
+                        
+                     // (추가) 작성한 Q&A 수정하기
+                        function editQna(messageId) {
+                            const contentDiv = document.getElementById('qna_content_' + messageId);
+                            const oldContent = contentDiv.innerText;
+                            
+                            // 팝업창을 띄워 기존 내용을 보여주고 새 내용을 입력받음
+                            const newContent = prompt('수정할 내용을 입력하세요:', oldContent);
+                            
+                            // 취소를 누르지 않았고, 내용이 비어있지 않으며, 기존과 달라진 경우에만 실행
+                            if(newContent !== null && newContent.trim() !== '' && newContent !== oldContent) {
+                                fetch('updateQnaAjax.jsp', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                    body: 'message_id=' + messageId + '&content=' + encodeURIComponent(newContent.trim())
+                                })
+                                .then(response => response.text())
+                                .then(result => {
+                                    if(result.trim() === 'success') {
+                                        loadQnaList(); // 성공 시 목록 새로고침 (수정 내용 즉시 반영)
+                                    } else {
+                                        alert('수정에 실패했습니다. 본인 글인지 확인해주세요.');
+                                    }
+                                })
+                                .catch(error => console.error('Error:', error));
+                            }
+                        }
+
+                        fetch('writeQnaAjax.jsp', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                            body: 'channel_id=' + channelId + '&content=' + encodeURIComponent(content)
+                        })
+                        .then(response => response.text())
+                        .then(result => {
+                            if(result.trim() === 'success') {
+                                contentObj.value = ''; // 폼 비우기
+                                loadQnaList(); // 리스트 갱신
+                            } else {
+                                alert('질문 등록에 실패했습니다.');
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                    }
+
+                    // 페이지 로딩 완료 시 최초 1회 로드 및 3초마다 갱신(실시간 효과)
+                    window.onload = function() {
+                        loadQnaList();
+                        setInterval(loadQnaList, 3000); 
+                    };
+                </script>
             <% } %>
             
         </div>
