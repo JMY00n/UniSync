@@ -40,25 +40,38 @@ CREATE TABLE channel_list (
     FOREIGN KEY (user_id) REFERENCES member(user_id) ON DELETE CASCADE
 );
 
--- 4. 서브보드 테이블 (Sub-boards : 공지사항, 수업자료, Q&A 등)
 CREATE TABLE subboard (
-    board_id INT AUTO_INCREMENT PRIMARY KEY,
-    board_name VARCHAR(50) NOT NULL,
     channel_id INT NOT NULL,
+    board_name VARCHAR(50) NOT NULL, -- '자유게시판', '강의자료', '공지사항'
+    PRIMARY KEY (channel_id, board_name), -- 두 컬럼을 묶어서 PK로!
     FOREIGN KEY (channel_id) REFERENCES channel(channel_id) ON DELETE CASCADE
 );
+
+INSERT INTO subboard VALUES (1, '자유게시판', 1);
+INSERT INTO subboard VALUES (2, '강의자료', 1);
+INSERT INTO subboard VALUES (3, '공지사항', 1);
+
+
 
 -- 5. 게시글 테이블 (Messages)
 CREATE TABLE message (
     message_id INT AUTO_INCREMENT PRIMARY KEY,
-    board_id INT NOT NULL,
+    channel_id INT NOT NULL,
+    board_name VARCHAR(50) NOT NULL,
     user_id VARCHAR(20) NOT NULL, -- 작성자 아이디
     title VARCHAR(100) NOT NULL,
     content TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 시간 자동 입력 보완
     file_path VARCHAR(200), -- 파일 첨부 기능용
-    FOREIGN KEY (board_id) REFERENCES subboard(board_id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES member(user_id) ON DELETE CASCADE
+    
+    -- 외래키 설정: subboard의 복합키(channel_id, board_name)를 묶어서 참조
+    FOREIGN KEY (channel_id, board_name) 
+        REFERENCES subboard(channel_id, board_name) 
+        ON DELETE CASCADE,
+        
+    FOREIGN KEY (user_id) 
+        REFERENCES member(user_id) 
+        ON DELETE CASCADE
 );
 
 -- 6. 댓글 테이블 (Comments)
