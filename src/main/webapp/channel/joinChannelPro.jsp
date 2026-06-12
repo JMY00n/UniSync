@@ -22,14 +22,14 @@
 
     ChannelDAO cdao = ChannelDAO.getInstance();
     
-    // 1. 입력한 코드로 만들어진 방이 있는지 검색
+    // 1. 입력한 코드로 만들어진 방이 있는지 검색 (방금 DAO에 만든 기능!)
     ChannelVO channel = cdao.getChannelByCode(entry_code);
 
     if (channel != null) {
-        // 2. 방이 존재하면 가입 처리 (channel_list 테이블에 추가)
-        int result = cdao.joinChannel(channel.getChannel_id(), userId);
+        // 2. 방이 존재하면 가입 처리 (int 대신 boolean으로 받기!)
+        boolean isSuccess = cdao.joinChannel(channel.getChannel_id(), userId);
         
-        if (result > 0) {
+        if (isSuccess) {
 %>
             <script>
                 alert("<%= channel.getChannel_name() %> 강의실에 성공적으로 입장했습니다!");
