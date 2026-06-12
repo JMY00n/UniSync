@@ -11,6 +11,10 @@ public class MessageVO {
     private String content;
     private Timestamp created_at;
     private String file_path;
+    private int is_pinned; // 0: 일반, 1: 상단 고정
+
+    public int getIs_pinned() { return is_pinned; }
+    public void setIs_pinned(int is_pinned) { this.is_pinned = is_pinned; }
 
     // Getter와 Setter
     public int getMessage_id() { return message_id; }

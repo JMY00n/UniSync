@@ -8,7 +8,7 @@ import javax.naming.InitialContext;
 import javax.sql.DataSource;
 
 public class MessageDAO {
-    // 1. 싱글톤 패턴 적용 (DAO 객체를 하나만 생성해서 공유)
+    // 1. 싱글톤 패턴 적용
     private static MessageDAO instance = new MessageDAO();
 
     public static MessageDAO getInstance() {
@@ -17,7 +17,7 @@ public class MessageDAO {
 
     private MessageDAO() {}
 
-    // 2. 데이터베이스 커넥션 풀(DBCP) 연결 메서드
+    // 2. 데이터베이스 커넥션 풀(DBCP) 연결
     private Connection getConnection() {
         try {
             InitialContext ic = new InitialContext();
@@ -30,7 +30,7 @@ public class MessageDAO {
         }
     }
 
-    // 3. 특정 방(channel_id)과 특정 게시판(board_name)의 글 목록 조회 (최신순)
+    // 3. 특정 방(channel_id)과 특정 게시판(board_name)의 글 목록 조회
     public ArrayList<MessageVO> getMessageList(int channel_id, String board_name) {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -39,7 +39,8 @@ public class MessageDAO {
 
         try {
             conn = getConnection();
-            String sql = "SELECT * FROM message WHERE channel_id = ? AND board_name = ? ORDER BY message_id DESC";
+            // [팩트 체크] 상단 고정된 글(is_pinned=1)을 먼저 띄우고, 나머지는 최신순(message_id DESC)으로 정렬!
+            String sql = "SELECT * FROM message WHERE channel_id = ? AND board_name = ? ORDER BY is_pinned DESC, message_id DESC";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, channel_id);
             pstmt.setString(2, board_name);
@@ -55,6 +56,7 @@ public class MessageDAO {
                 msg.setContent(rs.getString("content"));
                 msg.setCreated_at(rs.getTimestamp("created_at"));
                 msg.setFile_path(rs.getString("file_path"));
+                msg.setIs_pinned(rs.getInt("is_pinned")); // 고정 여부 추가
                 list.add(msg);
             }
         } catch (Exception e) {
@@ -68,7 +70,7 @@ public class MessageDAO {
         return list;
     }
 
-    // 4. 특정 게시글 1개 상세 조회 (글 제목 클릭 시)
+    // 4. 특정 게시글 1개 상세 조회
     public MessageVO getMessageById(int message_id) {
         Connection conn = null;
         PreparedStatement pstmt = null;
@@ -92,6 +94,7 @@ public class MessageDAO {
                 msg.setContent(rs.getString("content"));
                 msg.setCreated_at(rs.getTimestamp("created_at"));
                 msg.setFile_path(rs.getString("file_path"));
+                msg.setIs_pinned(rs.getInt("is_pinned")); // 고정 여부 추가
             }
         } catch (Exception e) {
             System.out.println("🚨 [MessageDAO] 상세 글 조회 중 에러 발생!");
@@ -104,12 +107,13 @@ public class MessageDAO {
         return msg;
     }
 
-    // 5. 게시글(공지사항, 강의자료 등) 작성 (INSERT)
+    // 5. 게시글 작성 (INSERT)
     public boolean insertMessage(MessageVO msg) {
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
             conn = getConnection();
+            // is_pinned는 DB에서 자동으로 0(기본값)이 들어가므로 INSERT에 안 넣어도 됨
             String sql = "INSERT INTO message (channel_id, board_name, user_id, title, content, file_path) VALUES (?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, msg.getChannel_id());
@@ -117,10 +121,9 @@ public class MessageDAO {
             pstmt.setString(3, msg.getUser_id());
             pstmt.setString(4, msg.getTitle());
             pstmt.setString(5, msg.getContent());
-            pstmt.setString(6, msg.getFile_path()); // 파일이 없으면 null
+            pstmt.setString(6, msg.getFile_path()); 
             
-            int result = pstmt.executeUpdate();
-            return result > 0;
+            return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
             System.out.println("🚨 [MessageDAO] 게시글 작성 중 에러 발생!");
             e.printStackTrace();
@@ -159,7 +162,6 @@ public class MessageDAO {
         try {
             conn = getConnection();
             
-            // 첨부파일이 새로 등록되었는지 여부에 따라 쿼리 분리
             if(msg.getFile_path() != null) {
                 String sql = "UPDATE message SET title=?, content=?, file_path=? WHERE message_id=?";
                 pstmt = conn.prepareStatement(sql);
@@ -180,6 +182,43 @@ public class MessageDAO {
             e.printStackTrace();
             return false;
         } finally {
+            if (pstmt != null) try { pstmt.close(); } catch(Exception e) {}
+            if (conn != null) try { conn.close(); } catch(Exception e) {}
+        }
+    }
+
+    // 8. Q&A 게시글 상단 고정 및 해제 처리 (트랜잭션 적용)
+    public boolean setPinnedMessage(int channel_id, int message_id, boolean isPin) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = getConnection();
+            conn.setAutoCommit(false); // 트랜잭션 시작
+
+            // 1. 해당 방의 Q&A 고정 상태를 전부 0(해제)으로 초기화 (하나만 고정되게 유지)
+            String sql1 = "UPDATE message SET is_pinned = 0 WHERE channel_id = ? AND board_name = 'Q&A'";
+            pstmt = conn.prepareStatement(sql1);
+            pstmt.setInt(1, channel_id);
+            pstmt.executeUpdate();
+            pstmt.close();
+
+            // 2. 고정 요청(isPin == true)일 경우 선택한 글만 1로 업데이트
+            if (isPin) {
+                String sql2 = "UPDATE message SET is_pinned = 1 WHERE message_id = ?";
+                pstmt = conn.prepareStatement(sql2);
+                pstmt.setInt(1, message_id);
+                pstmt.executeUpdate();
+            }
+
+            conn.commit();
+            return true;
+        } catch (Exception e) {
+            System.out.println("🚨 [MessageDAO] 상단 고정 처리 중 에러 발생!");
+            e.printStackTrace();
+            try { if(conn != null) conn.rollback(); } catch(Exception ex) {}
+            return false;
+        } finally {
+            try { if(conn != null) conn.setAutoCommit(true); } catch(Exception ex) {}
             if (pstmt != null) try { pstmt.close(); } catch(Exception e) {}
             if (conn != null) try { conn.close(); } catch(Exception e) {}
         }
