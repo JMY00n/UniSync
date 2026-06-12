@@ -72,6 +72,29 @@ CREATE TABLE comment (
     FOREIGN KEY (user_id) REFERENCES member(user_id) ON DELETE CASCADE
 );
 
+-- 1. 공지사항 테이블 생성
+CREATE TABLE notice (
+    notice_id INT AUTO_INCREMENT PRIMARY KEY,  -- 공지사항 고유 번호
+    channel_id INT NOT NULL,                   -- 어떤 강의실의 공지사항인지 구별
+    user_id VARCHAR(50) NOT NULL,              -- 작성자 아이디 (교수)
+    title VARCHAR(255) NOT NULL,               -- 공지사항 제목
+    content TEXT NOT NULL,                     -- 공지사항 내용
+    filename VARCHAR(255),                     -- 첨부파일 이름 (없으면 NULL)
+    reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 작성 날짜 (자동 입력)
+    FOREIGN KEY (channel_id) REFERENCES channel(channel_id) ON DELETE CASCADE
+);
+
+-- 2. 공지사항 댓글 테이블 생성
+CREATE TABLE notice_reply (
+    reply_id INT AUTO_INCREMENT PRIMARY KEY,   -- 댓글 고유 번호
+    notice_id INT NOT NULL,                    -- 어떤 공지사항의 댓글인지 구별
+    user_id VARCHAR(50) NOT NULL,              -- 댓글 작성자 아이디
+    reply_content TEXT NOT NULL,               -- 댓글 내용
+    reg_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 댓글 작성 날짜
+    FOREIGN KEY (notice_id) REFERENCES notice(notice_id) ON DELETE CASCADE
+);
+
+
 
 SELECT * FROM channel;
 SELECT * FROM channel_list;
