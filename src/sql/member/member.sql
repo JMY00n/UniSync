@@ -86,6 +86,9 @@ CREATE TABLE comment (
     FOREIGN KEY (user_id) REFERENCES member(user_id) ON DELETE CASCADE
 );
 
+
+ALTER TABLE message ADD is_pinned INT NOT NULL DEFAULT 0;
+-- 0이면 일반 채팅글, 1이면 상단 고정글!
 -- ════════════════ [ 확인용 조회 쿼리 ] ════════════════
 SELECT * FROM channel;
 SELECT * FROM channel_list;
