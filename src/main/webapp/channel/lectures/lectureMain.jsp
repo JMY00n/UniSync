@@ -192,7 +192,7 @@
                             <td><%= sdf.format(msg.getCreated_at()) %></td>
                             <td>
                                 <% if(msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
-                                    <a href="../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" class="file-icon" style="text-decoration: none; color: #28a745; background-color: #d4edda; border: 1px solid #c3e6cb;">💾 받기</a>
+                                    <a href="../../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" class="file-icon" style="text-decoration: none; color: #28a745; background-color: #d4edda; border: 1px solid #c3e6cb;">💾 받기</a>
                                 <% } else { %>
                                     <span style="color: #ccc;">-</span>
                                 <% } %>
