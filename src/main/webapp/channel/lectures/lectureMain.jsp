@@ -224,7 +224,7 @@
 
                     // 1) Q&A 목록 불러오기
                     function loadQnaList() {
-                        fetch('getQnaListAjax.jsp?channel_id=' + channelId)
+                    	fetch('../freechat/getQnaListAjax.jsp?channel_id=' + channelId)
                         .then(response => response.text())
                         .then(html => {
                             document.getElementById('qnaListArea').innerHTML = html;
@@ -243,7 +243,7 @@
                             return;
                         }
 
-                        fetch('writeQnaAjax.jsp', {
+                        fetch('../freechat/writeQnaAjax.jsp', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                             body: 'channel_id=' + channelId + '&content=' + encodeURIComponent(content)
@@ -268,7 +268,7 @@
                         const newContent = prompt('수정할 내용을 입력하세요:', oldContent);
                         
                         if(newContent !== null && newContent.trim() !== '' && newContent !== oldContent) {
-                            fetch('updateQnaAjax.jsp', {
+                        	fetch('../freechat/updateQnaAjax.jsp', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                                 body: 'message_id=' + messageId + '&content=' + encodeURIComponent(newContent.trim())
@@ -287,7 +287,7 @@
 
                     // 4) 교수 전용 상단 고정 / 해제 기능
                     function togglePin(messageId, isPin) {
-                        fetch('pinQnaAjax.jsp', {
+                    	fetch('../freechat/pinQnaAjax.jsp', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                             body: 'channel_id=' + channelId + '&message_id=' + messageId + '&is_pin=' + isPin
