@@ -266,9 +266,9 @@
         <div class="dash-foot">
             <span class="foot-brand">UniSync · JSP 기말과제</span>
             <div class="foot-team">
-                <span class="tm"><b>이름</b> 백엔드</span>
-                <span class="tm"><b>이름</b> DB 설계</span>
-                <span class="tm"><b>이름</b> 프론트엔드 · 디자인</span>
+                <span class="tm"><b>이름</b>윤정민</span>
+                <span class="tm"><b>이름</b>김강일</span>
+                <span class="tm"><b>이름</b>정예찬</span>
             </div>
         </div>
 

@@ -75,6 +75,7 @@ CREATE TABLE message (
         ON DELETE CASCADE
 );
 
+
 -- 6. 댓글 테이블 (Comments)
 CREATE TABLE comment (
     comment_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -94,3 +95,4 @@ SELECT * FROM channel;
 SELECT * FROM channel_list;
 SELECT * FROM member;
 SELECT * FROM subboard;
+SELECT * FROM message;

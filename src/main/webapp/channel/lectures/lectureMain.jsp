@@ -98,7 +98,7 @@
                 <div style="overflow: hidden; margin-bottom: 10px;">
                     <h3 style="float: left; margin: 0;">📢 공지사항 게시판</h3>
                     <% if(role == 1) { // 교수만 작성 가능 %>
-                        <button type="button" class="btn-write" onclick="location.href='writeNoticeForm.jsp?channel_id=<%= channel_id %>'">공지사항 작성</button>
+                        <button type="button" class="btn-write" onclick="location.href='../notice/writeNoticeForm.jsp?channel_id=<%= channel_id %>'">공지사항 작성</button>
                     <% } %>
                 </div>
                 
@@ -129,7 +129,7 @@
                         <tr>
                             <td><%= count-- %></td>
                             <td>
-                                <a href="noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>" style="color: #007bff; text-decoration: none; font-weight: bold;">
+                                <a href="../notice/noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>" style="color: #007bff; text-decoration: none; font-weight: bold;">
                                     <%= msg.getTitle() %>
                                 </a>
                             </td>

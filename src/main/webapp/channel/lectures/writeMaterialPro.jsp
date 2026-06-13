@@ -37,7 +37,7 @@
             <script>
                 alert("강의자료가 성공적으로 등록되었습니다.");
                 // 등록 완료 후 강의자료실(menu=material) 목록으로 리다이렉트
-                location.href = "lectureMain.jsp?channel_id=<%= channel_id %>&menu=material";
+                location.href = "../lectures/lectureMain.jsp?channel_id=<%= channel_id %>&menu=material";
             </script>
 <%
         } else {

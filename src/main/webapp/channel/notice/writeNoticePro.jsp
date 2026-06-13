@@ -55,7 +55,7 @@
             <script>
                 alert("공지사항이 성공적으로 등록되었습니다.");
                 // 작성 완료 후 다시 해당 방의 공지사항 목록으로 튕겨줌!
-                location.href = "lectureMain.jsp?channel_id=<%= channel_id %>&menu=notice";
+                location.href = "../lectures/lectureMain.jsp?channel_id=<%= channel_id %>&menu=notice";
             </script>
 <%
         } else {
