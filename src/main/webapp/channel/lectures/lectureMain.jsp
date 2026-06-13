@@ -100,7 +100,7 @@
   <div class="ch-side">
     <div class="ch-side-top">
       <div class="ch-name"><%= channel.getChannel_name() %></div>
-      <div class="ch-code">코드 : <%= channel.getEntry_code() %></div>
+      <div class="ch-code">코드 <span class="ch-code-val"><%= channel.getEntry_code() %></span></div>
     </div>
     <div class="ch-side-nav">
       <div class="nav-sec">게시판</div>
@@ -143,11 +143,11 @@
       </div>
       <div class="lm-actions">
         <% if (isProf && menu.equals("notice")) { %>
-        <button type="button" class="btn-write" onclick="location.href='../notice/writeNoticeForm.jsp?channel_id=<%= channel_id %>'">
+        <button type="button" class="btn-write" onclick="openWriteModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>공지 작성
         </button>
         <% } else if (isProf && menu.equals("material")) { %>
-        <button type="button" class="btn-write" onclick="location.href='writeMaterialForm.jsp?channel_id=<%= channel_id %>'">
+        <button type="button" class="btn-write" onclick="openWriteModal()">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>자료 올리기
         </button>
         <% } %>
@@ -227,6 +227,30 @@
         </div>
         <div id="qnaListArea" class="qna-list"></div>
 
+        <%-- Q&A 수정 글래스 모달 (리스트 밖 → 3초 새로고침에 안 지워짐) --%>
+        <div class="wm-overlay" id="qnaEditModal" onclick="if(event.target===this) closeQnaEdit()">
+          <div class="wm-glass" style="width:560px;">
+            <div class="wm-head">
+              <div class="wm-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              </div>
+              <div class="wm-titles">
+                <div class="wm-title">질문 수정</div>
+                <div class="wm-sub">내용을 수정하고 저장하세요.</div>
+              </div>
+              <button type="button" class="wm-x" onclick="closeQnaEdit()">✕</button>
+            </div>
+            <div class="wm-field">
+              <label class="wm-label">내용</label>
+              <textarea class="wm-textarea" id="qnaEditText" style="min-height:160px;"></textarea>
+            </div>
+            <div class="wm-actions">
+              <button type="button" class="wm-cancel" onclick="closeQnaEdit()">취소</button>
+              <button type="button" class="wm-go" onclick="saveQnaEdit()">저장</button>
+            </div>
+          </div>
+        </div>
+
         <script>
           const channelId = <%= channel_id %>;
 
@@ -255,23 +279,47 @@
             .catch(error => console.error('Error:', error));
           }
 
+          let editingQnaId = null;
           function editQna(messageId) {
             const contentDiv = document.getElementById('qna_content_' + messageId);
-            const oldContent = contentDiv.innerText;
-            const newContent = prompt('수정할 내용을 입력하세요:', oldContent);
-            if (newContent !== null && newContent.trim() !== '' && newContent !== oldContent) {
-              fetch('../freechat/updateQnaAjax.jsp', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'message_id=' + messageId + '&content=' + encodeURIComponent(newContent.trim())
-              })
-              .then(response => response.text())
-              .then(result => {
-                if (result.trim() === 'success') { loadQnaList(); }
-                else { alert('수정에 실패했습니다. 본인 글인지 확인해주세요.'); }
-              })
-              .catch(error => console.error('Error:', error));
-            }
+            editingQnaId = messageId;
+            document.getElementById('qnaEditText').value = contentDiv.innerText;
+            document.getElementById('qnaEditModal').classList.add('open');
+            document.getElementById('qnaEditText').focus();
+          }
+          function closeQnaEdit() {
+            document.getElementById('qnaEditModal').classList.remove('open');
+            editingQnaId = null;
+          }
+          function saveQnaEdit() {
+            const content = document.getElementById('qnaEditText').value;
+            if (content.trim() === '') { alert('내용을 입력해주세요.'); return; }
+            fetch('../freechat/updateQnaAjax.jsp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: 'message_id=' + editingQnaId + '&content=' + encodeURIComponent(content.trim())
+            })
+            .then(response => response.text())
+            .then(result => {
+              if (result.trim() === 'success') { closeQnaEdit(); loadQnaList(); }
+              else { alert('수정에 실패했습니다. 본인 글인지 확인해주세요.'); }
+            })
+            .catch(error => console.error('Error:', error));
+          }
+
+          function deleteQna(messageId) {
+            if (!confirm('이 메시지를 삭제할까요?')) return;
+            fetch('../freechat/deleteQnaAjax.jsp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: 'message_id=' + messageId
+            })
+            .then(response => response.text())
+            .then(result => {
+              if (result.trim() === 'success') { loadQnaList(); }
+              else { alert('삭제에 실패했습니다. 본인 글인지 확인해주세요.'); }
+            })
+            .catch(error => console.error('Error:', error));
           }
 
           function togglePin(messageId, isPin) {
@@ -308,7 +356,7 @@
         <div class="mem-av prof"><%= two(mv.getName()) %></div>
         <div class="mem-info">
           <div class="mem-name"><%= mv.getName() %></div>
-          <div class="mem-sub">교수<%= mv.getUser_id().equals(channel.getUser_id()) ? " · 개설자" : "" %></div>
+          <div class="mem-sub">교수</div>
         </div>
       </div>
     <% } %>
@@ -327,6 +375,63 @@
       </div>
     <% } %>
   </div>
+
+  <%-- ══════════ 글쓰기 글래스 모달 (공지/자료, 교수만) ══════════ --%>
+  <% if (isProf && (menu.equals("notice") || menu.equals("material"))) {
+       String wAction, wBoard, wTitle, wSub, wPh1, wPh2;
+       if (menu.equals("material")) {
+         wAction = "writeMaterialPro.jsp"; wBoard = "강의자료";
+         wTitle = "강의자료 등록"; wSub = "학생들이 내려받을 강의자료를 올려주세요.";
+         wPh1 = "예: [1주차] 강의 슬라이드"; wPh2 = "자료 설명을 입력하세요.";
+       } else {
+         wAction = "../notice/writeNoticePro.jsp"; wBoard = "공지사항";
+         wTitle = "공지사항 작성"; wSub = "학생들에게 전달할 공지를 작성하세요.";
+         wPh1 = "공지사항 제목을 입력하세요."; wPh2 = "공지사항 내용을 입력하세요.";
+       }
+  %>
+  <div class="wm-overlay" id="writeModal" onclick="if(event.target===this) closeWriteModal()">
+    <div class="wm-glass">
+      <div class="wm-head">
+        <div class="wm-icon">
+          <% if (menu.equals("material")) { %>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+          <% } else { %>
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+          <% } %>
+        </div>
+        <div class="wm-titles">
+          <div class="wm-title"><%= wTitle %></div>
+          <div class="wm-sub"><%= wSub %></div>
+        </div>
+        <button type="button" class="wm-x" onclick="closeWriteModal()">✕</button>
+      </div>
+      <form action="<%= wAction %>" method="post" enctype="multipart/form-data">
+        <input type="hidden" name="channel_id" value="<%= channel_id %>">
+        <input type="hidden" name="board_name" value="<%= wBoard %>">
+        <div class="wm-field">
+          <label class="wm-label">제목</label>
+          <input class="wm-input" type="text" name="title" required placeholder="<%= wPh1 %>">
+        </div>
+        <div class="wm-field">
+          <label class="wm-label">내용</label>
+          <textarea class="wm-textarea" name="content" required placeholder="<%= wPh2 %>"></textarea>
+        </div>
+        <div class="wm-field">
+          <label class="wm-label">첨부파일 <span style="color:var(--text3);font-weight:500;">(선택)</span></label>
+          <input class="wm-file" type="file" name="uploadFile">
+        </div>
+        <div class="wm-actions">
+          <button type="button" class="wm-cancel" onclick="closeWriteModal()">취소</button>
+          <button type="submit" class="wm-go">작성 완료</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script>
+    function openWriteModal(){ document.getElementById('writeModal').classList.add('open'); }
+    function closeWriteModal(){ document.getElementById('writeModal').classList.remove('open'); }
+  </script>
+  <% } %>
 
 </div><!-- /lm-app -->
 </body>

@@ -53,11 +53,20 @@ body { overflow: hidden; }
 /* ══════════ 채널 사이드바 ══════════ */
 .ch-side {
   width: 248px; flex-shrink: 0; display: flex; flex-direction: column;
-  background: #29246E; color: #fff;
+  color: #fff; position: relative; overflow: hidden; background: #29246E;
 }
+/* 콘텐츠는 장식 위로 */
+.ch-side-top, .ch-side-nav, .ch-side-me { position: relative; z-index: 1; }
+/* 빈 공간 채우는 장식 — 아주 은은한 채워진 블롭 */
+.ch-side::before, .ch-side::after {
+  content: ""; position: absolute; border-radius: 50%; pointer-events: none; z-index: 0;
+}
+.ch-side::before { width: 300px; height: 300px; left: -100px; bottom: -50px; background: rgba(255,255,255,0.05); }
+.ch-side::after  { width: 200px; height: 200px; right: -80px;  top: 80px;     background: rgba(255,255,255,0.035); }
 .ch-side-top { padding: 20px 18px 16px; border-bottom: 1px solid rgba(255,255,255,0.10); }
 .ch-name { font-family: var(--brand); font-size: 17px; font-weight: 800; letter-spacing: -.3px; line-height: 1.3; }
 .ch-code { font-family: var(--mono); font-size: 11.5px; color: rgba(255,255,255,0.55); margin-top: 6px; letter-spacing: .04em; }
+.ch-code-val { display: inline-block; background: rgba(255,255,255,0.16); color: #fff; font-weight: 700; font-size: 12px; padding: 2px 9px; border-radius: 6px; margin-left: 5px; letter-spacing: .08em; }
 .ch-side-nav { flex: 1; overflow-y: auto; padding: 16px 12px; }
 .nav-sec { font-size: 11px; font-weight: 700; color: rgba(255,255,255,0.40); letter-spacing: .08em; padding: 0 8px 8px; }
 .nav-item {
@@ -158,3 +167,52 @@ body { overflow: hidden; }
 .lm-body::-webkit-scrollbar, .mem-side::-webkit-scrollbar, .ch-side-nav::-webkit-scrollbar { width: 7px; }
 .lm-body::-webkit-scrollbar-thumb, .mem-side::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.10); border-radius: 4px; }
 .ch-side-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+/* ══════════════════════════════════════════════
+   글쓰기 글래스모피즘 모달 (공지/자료 작성)
+══════════════════════════════════════════════ */
+.wm-overlay {
+  position: fixed; inset: 0; z-index: 100; display: none;
+  align-items: center; justify-content: center; padding: 24px;
+  background: rgba(28,24,86,.26);
+  backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px);
+}
+.wm-overlay.open { display: flex; }
+.wm-glass {
+  width: 900px; max-width: 94vw; max-height: 90vh; overflow-y: auto;
+  padding: 36px 40px; border-radius: 28px;
+  background: rgba(255,255,255,.78);
+  backdrop-filter: blur(24px) saturate(1.4); -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  border: 1px solid rgba(255,255,255,.6); box-shadow: 0 36px 90px rgba(20,17,74,.45);
+}
+.wm-head { display: flex; align-items: center; gap: 15px; margin-bottom: 26px; }
+.wm-icon { width: 54px; height: 54px; flex-shrink: 0; border-radius: 15px; background: var(--primary); display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px var(--primary-glow); }
+.wm-icon svg { width: 24px; height: 24px; }
+.wm-titles { flex: 1; }
+.wm-title { font-family: var(--brand); font-size: 23px; font-weight: 800; color: var(--text); }
+.wm-sub { font-size: 13.5px; color: var(--text2); margin-top: 2px; }
+.wm-x { width: 34px; height: 34px; border: none; background: rgba(0,0,0,.05); border-radius: 10px; color: var(--text2); font-size: 16px; cursor: pointer; }
+.wm-x:hover { background: rgba(0,0,0,.10); }
+.wm-field { margin-bottom: 20px; }
+.wm-label { display: block; font-size: 13.5px; font-weight: 700; color: var(--text2); margin-bottom: 8px; }
+.wm-input, .wm-textarea {
+  width: 100%; border: 1.5px solid var(--border-m); border-radius: var(--r);
+  padding: 13px 15px; font-family: var(--font); font-size: 14.5px; color: var(--text);
+  background: rgba(255,255,255,.82); outline: none; transition: border-color .14s, box-shadow .14s;
+}
+.wm-textarea { min-height: 210px; resize: vertical; line-height: 1.6; }
+.wm-input:focus, .wm-textarea:focus { border-color: var(--primary-mid); box-shadow: 0 0 0 3px var(--primary-glow); background: #fff; }
+.wm-input::placeholder, .wm-textarea::placeholder { color: var(--text3); }
+.wm-file { width: 100%; padding: 11px 14px; border: 1.5px dashed var(--border-m); border-radius: var(--r); font-size: 13px; color: var(--text2); background: rgba(255,255,255,.5); }
+.wm-file::file-selector-button { font-family: var(--font); font-size: 12.5px; font-weight: 600; color: #fff; background: var(--primary-mid); border: none; border-radius: 6px; padding: 7px 13px; margin-right: 12px; cursor: pointer; }
+.wm-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 26px; }
+.wm-cancel { padding: 0 24px; height: 48px; border-radius: var(--r); border: 1px solid var(--border-m); background: rgba(255,255,255,.6); color: var(--text2); font-family: var(--font); font-size: 14px; font-weight: 600; cursor: pointer; }
+.wm-cancel:hover { background: var(--bg); }
+.wm-go { padding: 0 30px; height: 48px; border: none; border-radius: var(--r); background: var(--primary); color: #fff; font-family: var(--font); font-size: 14px; font-weight: 700; cursor: pointer; }
+.wm-go:hover { background: var(--primary-hover); }
+
+/* blur 미지원 브라우저 fallback — 깔끔한 흰 카드로 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .wm-overlay { background: rgba(28,24,86,.55); }
+  .wm-glass   { background: rgba(255,255,255,.97); }
+}
