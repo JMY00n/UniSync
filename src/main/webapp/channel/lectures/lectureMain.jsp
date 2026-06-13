@@ -3,316 +3,331 @@
 <%@ page import="channel.ChannelVO" %>
 <%@ page import="channel.MessageDAO" %>
 <%@ page import="channel.MessageVO" %>
+<%@ page import="member.MemberVO" %>
 <%@ page import="java.util.ArrayList" %>
 <%@ page import="java.text.SimpleDateFormat" %>
+<%!
+    // 아이콘/아바타용 앞 2글자
+    String two(String s) {
+        if (s == null) return "";
+        String x = s.replaceAll("\\s", "");
+        return x.length() <= 2 ? x : x.substring(0, 2);
+    }
+%>
 <%
-    // 1. 세션 체크 (로그인 유지 및 권한 확인)
+    // 1. 세션 체크
     String id = (String) session.getAttribute("user_id");
     if (id == null) id = (String) session.getAttribute("id");
-    
     Object roleObj = session.getAttribute("role");
     if (id == null || roleObj == null) {
-        response.sendRedirect("../login/login.jsp");
+        response.sendRedirect("../../login/login.jsp");
         return;
     }
     int role = (Integer) roleObj; // 1: 교수, 0: 학생
+    boolean isProf = (role == 1);
+    String name = (String) session.getAttribute("name");
+    if (name == null || name.trim().isEmpty()) name = id;
 
-    // 2. 방 번호(channel_id) 받아오기
+    // 2. 방 번호
     String idParam = request.getParameter("channel_id");
     if (idParam == null) {
-        response.sendRedirect("../dashboard/dashboard.jsp");
+        response.sendRedirect("../../dashboard/dashboard.jsp");
         return;
     }
     int channel_id = Integer.parseInt(idParam);
-    
-    // 3. DAO를 통해 현재 방 정보 가져오기
+
+    // 3. 방 정보
     ChannelDAO cdao = ChannelDAO.getInstance();
     ChannelVO channel = cdao.getChannelById(channel_id);
-    
-    // 4. 현재 선택된 메뉴 파악 (기본값은 '공지사항')
+    if (channel == null) {
+        response.sendRedirect("../../dashboard/dashboard.jsp");
+        return;
+    }
+
+    // 4. 현재 메뉴 (notice / material / qna)
     String menu = request.getParameter("menu");
-    if(menu == null) menu = "notice";
-    
-    // 날짜 포맷 객체
+    if (menu == null) menu = "notice";
+
+    // 5. 레일용 내 채널 목록 + 우측 멤버 명단
+    ArrayList<ChannelVO> myChannels = isProf ? cdao.getChannelsByProfessor(id) : cdao.getChannelsByStudent(id);
+    ArrayList<MemberVO> members = cdao.getChannelMembers(channel_id);
+    int profCount = 0, stuCount = 0;
+    for (MemberVO mv : members) { if (mv.getRole() == 1) profCount++; else stuCount++; }
+
+    // 6. 게시판 제목
+    String boardTitle;
+    if (menu.equals("material"))  boardTitle = "강의자료";
+    else if (menu.equals("qna"))  boardTitle = "Q&A";
+    else                          boardTitle = "공지사항";
+
     SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 %>
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
 <meta charset="UTF-8">
 <title><%= channel.getChannel_name() %> - UniSync</title>
-<style>
-    body { margin: 0; font-family: sans-serif; background-color: #f4f7f6; }
-    
-    /* 상단 헤더 영역 */
-    .header_area { background-color: #fff; padding: 20px 40px; border-bottom: 2px solid #516e7f; display: flex; justify-content: space-between; align-items: center; }
-    .entry_code { background-color: #ffebee; padding: 5px 10px; border-radius: 5px; color: #d32f2f; font-weight: bold; letter-spacing: 2px;}
-    
-    /* 전체 레이아웃 (좌측 메뉴바 + 우측 컨텐츠) */
-    .container { display: flex; min-height: 80vh; }
-    
-    /* 사이드바 */
-    .sidebar { width: 220px; background-color: #343a40; padding-top: 20px; }
-    .sidebar a { display: block; padding: 15px 25px; color: #d1d5db; text-decoration: none; font-size: 16px; transition: 0.3s; }
-    .sidebar a:hover, .sidebar a.active { background-color: #495057; color: #fff; border-left: 4px solid #007bff; font-weight: bold; }
-    
-    /* 메인 컨텐츠 영역 */
-    .content_area { flex: 1; padding: 30px; background-color: #fff; margin: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
-    
-    /* 게시판 테이블 스타일 */
-    .board_table { width: 100%; border-collapse: collapse; margin-top: 15px; }
-    .board_table th { background-color: #f8f9fa; border-bottom: 2px solid #dee2e6; padding: 12px; text-align: left; font-size: 14px; color: #495057; }
-    .board_table td { border-bottom: 1px solid #dee2e6; padding: 12px; font-size: 14px; color: #333; }
-    .board_table tr:hover { background-color: #f1f3f5; }
-    
-    /* 버튼 및 아이콘 스타일 */
-    .btn-write { padding: 8px 15px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; float: right; font-weight: bold; }
-    .btn-write:hover { background-color: #0056b3; }
-    .btn-material { background-color: #28a745; }
-    .btn-material:hover { background-color: #218838; }
-    .file-icon { background-color: #e9ecef; padding: 4px 8px; border-radius: 4px; font-size: 12px; color: #495057; font-weight: bold; }
-</style>
+<link href="../../css/common.css" rel="stylesheet" type="text/css">
+<link href="../../css/lectureMain.css" rel="stylesheet" type="text/css">
 </head>
 <body>
+<div class="lm-app">
 
-    <div class="header_area">
-        <h2 style="margin: 0; color: #333;">📚 <%= channel.getChannel_name() %></h2>
-        <div>
-            <span style="margin-right: 15px;">👨‍🏫 개설 교수: <b><%= channel.getUser_id() %></b></span>
-            <span>🔑 입장 코드: <span class="entry_code"><%= channel.getEntry_code() %></span></span>
-            <button onclick="location.href='../../dashboard/dashboard.jsp'" style="margin-left: 20px; padding: 6px 12px; cursor: pointer;">나가기</button>
-        </div>
+  <!-- ══════════ 레일 ══════════ -->
+  <div class="rail">
+    <a class="rail-logo" href="../../dashboard/dashboard.jsp" title="대시보드">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    </a>
+    <div class="rail-div"></div>
+    <%
+        int ri = 0;
+        for (ChannelVO c : myChannels) {
+            String cls = "c" + ((ri % 3) + 1);
+            String act = (c.getChannel_id() == channel_id) ? " active" : "";
+    %>
+    <a class="ri <%= cls %><%= act %>" href="lectureMain.jsp?channel_id=<%= c.getChannel_id() %>" title="<%= c.getChannel_name() %>"><%= two(c.getChannel_name()) %></a>
+    <%      ri++;
+        }
+    %>
+    <div class="rail-bot">
+      <a class="r-ic" href="../../login/logoutPro.jsp" title="로그아웃">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="m16 17 5-5-5-5"/><path d="M21 12H9"/></svg>
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════════ 채널 사이드바 ══════════ -->
+  <div class="ch-side">
+    <div class="ch-side-top">
+      <div class="ch-name"><%= channel.getChannel_name() %></div>
+      <div class="ch-code">코드 : <%= channel.getEntry_code() %></div>
+    </div>
+    <div class="ch-side-nav">
+      <div class="nav-sec">게시판</div>
+      <a class="nav-item<%= menu.equals("notice") ? " active" : "" %>" href="lectureMain.jsp?channel_id=<%= channel_id %>&menu=notice">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        공지사항
+      </a>
+      <a class="nav-item<%= menu.equals("material") ? " active" : "" %>" href="lectureMain.jsp?channel_id=<%= channel_id %>&menu=material">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+        강의자료
+      </a>
+      <a class="nav-item<%= menu.equals("qna") ? " active" : "" %>" href="lectureMain.jsp?channel_id=<%= channel_id %>&menu=qna">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        실시간 Q&amp;A
+      </a>
+    </div>
+    <div class="ch-side-me">
+      <div class="me-av"><%= name.substring(0,1) %></div>
+      <div class="me-info">
+        <div class="me-name"><%= name %></div>
+        <div class="me-role"><%= isProf ? "교수" : "학생" %></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════ 메인(게시판 본문) ══════════ -->
+  <div class="lm-main">
+    <div class="lm-top">
+      <div class="lm-title">
+        <span class="lm-title-ic">
+        <% if (menu.equals("material")) { %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+        <% } else if (menu.equals("qna")) { %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
+        <% } else { %>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+        <% } %>
+        </span>
+        <%= boardTitle %>
+      </div>
+      <div class="lm-actions">
+        <% if (isProf && menu.equals("notice")) { %>
+        <button type="button" class="btn-write" onclick="location.href='../notice/writeNoticeForm.jsp?channel_id=<%= channel_id %>'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>공지 작성
+        </button>
+        <% } else if (isProf && menu.equals("material")) { %>
+        <button type="button" class="btn-write" onclick="location.href='writeMaterialForm.jsp?channel_id=<%= channel_id %>'">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>자료 올리기
+        </button>
+        <% } %>
+        <button type="button" class="btn-exit" onclick="location.href='../../dashboard/dashboard.jsp'">나가기</button>
+      </div>
     </div>
 
-    <div class="container">
-        <div class="sidebar">
-            <a href="lectureMain.jsp?channel_id=<%= channel_id %>&menu=notice" class="<%= menu.equals("notice") ? "active" : "" %>">📢 공지사항</a>
-            <a href="lectureMain.jsp?channel_id=<%= channel_id %>&menu=material" class="<%= menu.equals("material") ? "active" : "" %>">📁 강의자료</a>
-            <a href="lectureMain.jsp?channel_id=<%= channel_id %>&menu=qna" class="<%= menu.equals("qna") ? "active" : "" %>">💬 실시간 Q&A</a>
-        </div>
-        
-        <div class="content_area">
-            
-            <%-- ========================= [공지사항 게시판] ========================= --%>
-            <% if(menu.equals("notice")) { %>
-                <div style="overflow: hidden; margin-bottom: 10px;">
-                    <h3 style="float: left; margin: 0;">📢 공지사항 게시판</h3>
-                    <% if(role == 1) { // 교수만 작성 가능 %>
-                        <button type="button" class="btn-write" onclick="location.href='../notice/writeNoticeForm.jsp?channel_id=<%= channel_id %>'">공지사항 작성</button>
-                    <% } %>
-                </div>
-                
-                <table class="board_table">
-                    <thead>
-                        <tr>
-                            <th style="width: 8%;">번호</th>
-                            <th>제목</th>
-                            <th style="width: 15%;">작성날짜</th>
-                            <th style="width: 12%;">첨부파일</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <%
-                        MessageDAO mdao = MessageDAO.getInstance();
-                        ArrayList<MessageVO> noticeList = mdao.getMessageList(channel_id, "공지사항");
-                        
-                        if(noticeList.isEmpty()) {
-                    %>
-                        <tr>
-                            <td colspan="4" style="text-align: center; color: gray; padding: 30px;">등록된 공지사항이 없습니다.</td>
-                        </tr>
-                    <%
-                        } else {
-                            int count = noticeList.size();
-                            for(MessageVO msg : noticeList) {
-                    %>
-                        <tr>
-                            <td><%= count-- %></td>
-                            <td>
-                                <a href="../notice/noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>" style="color: #007bff; text-decoration: none; font-weight: bold;">
-                                    <%= msg.getTitle() %>
-                                </a>
-                            </td>
-                            <td><%= sdf.format(msg.getCreated_at()) %></td>
-                            <td>
-                                <% if(msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
-                                    <span class="file-icon" title="<%= msg.getFile_path() %>">📎 첨부됨</span>
-                                <% } else { %>
-                                    <span style="color: #ccc;">-</span>
-                                <% } %>
-                            </td>
-                        </tr>
-                    <%
-                            }
-                        }
-                    %>
-                    </tbody>
-                </table>
-                
-            <%-- ========================= [강의자료실] ========================= --%>
-            <% } else if(menu.equals("material")) { %>
-                <div style="overflow: hidden; margin-bottom: 10px;">
-                    <h3 style="float: left; margin: 0;">📁 강의자료실</h3>
-                    <% if(role == 1) { // 교수만 자료 업로드 가능 %>
-                        <button type="button" class="btn-write btn-material" onclick="location.href='writeMaterialForm.jsp?channel_id=<%= channel_id %>'">자료 올리기</button>
-                    <% } %>
-                </div>
-                
-                <table class="board_table">
-                    <thead>
-                        <tr>
-                            <th style="width: 8%;">번호</th>
-                            <th>자료 제목</th>
-                            <th style="width: 15%;">등록일</th>
-                            <th style="width: 12%;">다운로드</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                    <%
-                        MessageDAO mdaoMaterial = MessageDAO.getInstance();
-                        ArrayList<MessageVO> materialList = mdaoMaterial.getMessageList(channel_id, "강의자료");
-                        
-                        if(materialList.isEmpty()) {
-                    %>
-                        <tr>
-                            <td colspan="4" style="text-align: center; color: gray; padding: 30px;">등록된 강의자료가 없습니다.</td>
-                        </tr>
-                    <%
-                        } else {
-                            int count = materialList.size();
-                            for(MessageVO msg : materialList) {
-                    %>
-                        <tr>
-                            <td><%= count-- %></td>
-                            <td>
-                                <a href="materialDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>" style="color: #28a745; text-decoration: none; font-weight: bold;">
-                                    <%= msg.getTitle() %>
-                                </a>
-                            </td>
-                            <td><%= sdf.format(msg.getCreated_at()) %></td>
-                            <td>
-                                <% if(msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
-                                    <a href="../../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" class="file-icon" style="text-decoration: none; color: #28a745; background-color: #d4edda; border: 1px solid #c3e6cb;">💾 받기</a>
-                                <% } else { %>
-                                    <span style="color: #ccc;">-</span>
-                                <% } %>
-                            </td>
-                        </tr>
-                    <%
-                            }
-                        }
-                    %>
-                    </tbody>
-                </table>
-                
-            <%-- ========================= [실시간 Q&A] ========================= --%>
-            <% } else if(menu.equals("qna")) { %>
-                <div style="overflow: hidden; margin-bottom: 15px;">
-                    <h3 style="float: left; margin: 0;">💬 실시간 Q&A</h3>
-                </div>
-                
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; gap: 10px;">
-                    <textarea id="qnaContent" rows="2" style="flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; resize: none;" placeholder="궁금한 점을 자유롭게 남겨보세요!"></textarea>
-                    <button type="button" onclick="submitQna()" style="padding: 0 25px; background-color: #17a2b8; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer;">글쓰기<br>등록</button>
-                </div>
-                
-                <div id="qnaListArea" style="background-color: #fff; border: 1px solid #e9ecef; border-radius: 8px; padding: 20px; min-height: 300px; max-height: 500px; overflow-y: auto;">
-                    </div>
+    <div class="lm-body">
 
-                <script>
-                    const channelId = <%= channel_id %>;
-
-                    // 1) Q&A 목록 불러오기
-                    function loadQnaList() {
-                    	fetch('../freechat/getQnaListAjax.jsp?channel_id=' + channelId)
-                        .then(response => response.text())
-                        .then(html => {
-                            document.getElementById('qnaListArea').innerHTML = html;
-                        })
-                        .catch(error => console.error('Error:', error));
-                    }
-
-                    // 2) 새로운 글 등록하기
-                    function submitQna() {
-                        const contentObj = document.getElementById('qnaContent');
-                        const content = contentObj.value.trim();
-                        
-                        if(!content) {
-                            alert('내용을 입력해주세요.');
-                            contentObj.focus();
-                            return;
-                        }
-
-                        fetch('../freechat/writeQnaAjax.jsp', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: 'channel_id=' + channelId + '&content=' + encodeURIComponent(content)
-                        })
-                        .then(response => response.text())
-                        .then(result => {
-                            if(result.trim() === 'success') {
-                                contentObj.value = ''; // 폼 비우기
-                                loadQnaList(); // 리스트 갱신
-                            } else {
-                                alert('글 등록에 실패했습니다.');
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-                    }
-
-                    // 3) 본인이 작성한 글 수정하기
-                    function editQna(messageId) {
-                        const contentDiv = document.getElementById('qna_content_' + messageId);
-                        const oldContent = contentDiv.innerText;
-                        
-                        const newContent = prompt('수정할 내용을 입력하세요:', oldContent);
-                        
-                        if(newContent !== null && newContent.trim() !== '' && newContent !== oldContent) {
-                        	fetch('../freechat/updateQnaAjax.jsp', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                                body: 'message_id=' + messageId + '&content=' + encodeURIComponent(newContent.trim())
-                            })
-                            .then(response => response.text())
-                            .then(result => {
-                                if(result.trim() === 'success') {
-                                    loadQnaList(); // 성공 시 목록 새로고침
-                                } else {
-                                    alert('수정에 실패했습니다. 본인 글인지 확인해주세요.');
-                                }
-                            })
-                            .catch(error => console.error('Error:', error));
-                        }
-                    }
-
-                    // 4) 교수 전용 상단 고정 / 해제 기능
-                    function togglePin(messageId, isPin) {
-                    	fetch('../freechat/pinQnaAjax.jsp', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                            body: 'channel_id=' + channelId + '&message_id=' + messageId + '&is_pin=' + isPin
-                        })
-                        .then(response => response.text())
-                        .then(result => {
-                            if(result.trim() === 'success') {
-                                loadQnaList(); // 성공 시 목록 새로고침
-                            } else {
-                                alert('권한이 없거나 처리에 실패했습니다.');
-                            }
-                        })
-                        .catch(error => console.error('Error:', error));
-                    }
-
-                    // 5) 페이지 로딩 완료 시 최초 1회 로드 및 3초마다 갱신(실시간 효과)
-                    window.onload = function() {
-                        loadQnaList();
-                        setInterval(loadQnaList, 3000); 
-                    };
-                </script>
+      <%-- ===== 공지사항 ===== --%>
+      <% if (menu.equals("notice")) {
+            MessageDAO mdao = MessageDAO.getInstance();
+            ArrayList<MessageVO> noticeList = mdao.getMessageList(channel_id, "공지사항");
+      %>
+        <% if (noticeList.isEmpty()) { %>
+          <div class="board-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/></svg>
+            <div>등록된 공지사항이 없습니다.</div>
+          </div>
+        <% } else { %>
+          <table class="board-table">
+            <thead><tr><th class="col-no">번호</th><th>제목</th><th class="col-date">작성날짜</th><th class="col-file">첨부</th></tr></thead>
+            <tbody>
+            <% int count = noticeList.size();
+               for (MessageVO msg : noticeList) { %>
+              <tr onclick="location.href='../notice/noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>'">
+                <td class="col-no"><%= count-- %></td>
+                <td class="col-title"><a href="../notice/noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>"><%= msg.getTitle() %></a></td>
+                <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
+                <td class="col-file">
+                  <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
+                    <span class="file-chip">첨부</span>
+                  <% } else { %><span class="dash">-</span><% } %>
+                </td>
+              </tr>
             <% } %>
-            
-        </div>
-    </div>
+            </tbody>
+          </table>
+        <% } %>
 
+      <%-- ===== 강의자료 ===== --%>
+      <% } else if (menu.equals("material")) {
+            MessageDAO mdaoMaterial = MessageDAO.getInstance();
+            ArrayList<MessageVO> materialList = mdaoMaterial.getMessageList(channel_id, "강의자료");
+      %>
+        <% if (materialList.isEmpty()) { %>
+          <div class="board-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg>
+            <div>등록된 강의자료가 없습니다.</div>
+          </div>
+        <% } else { %>
+          <table class="board-table">
+            <thead><tr><th class="col-no">번호</th><th>자료 제목</th><th class="col-date">등록일</th><th class="col-file">받기</th></tr></thead>
+            <tbody>
+            <% int count = materialList.size();
+               for (MessageVO msg : materialList) { %>
+              <tr onclick="location.href='materialDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>'">
+                <td class="col-no"><%= count-- %></td>
+                <td class="col-title"><a href="materialDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>"><%= msg.getTitle() %></a></td>
+                <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
+                <td class="col-file">
+                  <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
+                    <a href="../../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" class="file-chip dl" onclick="event.stopPropagation();">받기</a>
+                  <% } else { %><span class="dash">-</span><% } %>
+                </td>
+              </tr>
+            <% } %>
+            </tbody>
+          </table>
+        <% } %>
+
+      <%-- ===== 실시간 Q&A (기존 AJAX 로직 그대로) ===== --%>
+      <% } else if (menu.equals("qna")) { %>
+        <div class="qna-writer">
+          <textarea id="qnaContent" rows="2" placeholder="궁금한 점을 자유롭게 남겨보세요!"></textarea>
+          <button type="button" onclick="submitQna()">등록</button>
+        </div>
+        <div id="qnaListArea" class="qna-list"></div>
+
+        <script>
+          const channelId = <%= channel_id %>;
+
+          function loadQnaList() {
+            fetch('../freechat/getQnaListAjax.jsp?channel_id=' + channelId)
+              .then(response => response.text())
+              .then(html => { document.getElementById('qnaListArea').innerHTML = html; })
+              .catch(error => console.error('Error:', error));
+          }
+
+          function submitQna() {
+            const contentObj = document.getElementById('qnaContent');
+            const content = contentObj.value.trim();
+            if (!content) { alert('내용을 입력해주세요.'); contentObj.focus(); return; }
+
+            fetch('../freechat/writeQnaAjax.jsp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: 'channel_id=' + channelId + '&content=' + encodeURIComponent(content)
+            })
+            .then(response => response.text())
+            .then(result => {
+              if (result.trim() === 'success') { contentObj.value = ''; loadQnaList(); }
+              else { alert('글 등록에 실패했습니다.'); }
+            })
+            .catch(error => console.error('Error:', error));
+          }
+
+          function editQna(messageId) {
+            const contentDiv = document.getElementById('qna_content_' + messageId);
+            const oldContent = contentDiv.innerText;
+            const newContent = prompt('수정할 내용을 입력하세요:', oldContent);
+            if (newContent !== null && newContent.trim() !== '' && newContent !== oldContent) {
+              fetch('../freechat/updateQnaAjax.jsp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'message_id=' + messageId + '&content=' + encodeURIComponent(newContent.trim())
+              })
+              .then(response => response.text())
+              .then(result => {
+                if (result.trim() === 'success') { loadQnaList(); }
+                else { alert('수정에 실패했습니다. 본인 글인지 확인해주세요.'); }
+              })
+              .catch(error => console.error('Error:', error));
+            }
+          }
+
+          function togglePin(messageId, isPin) {
+            fetch('../freechat/pinQnaAjax.jsp', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+              body: 'channel_id=' + channelId + '&message_id=' + messageId + '&is_pin=' + isPin
+            })
+            .then(response => response.text())
+            .then(result => {
+              if (result.trim() === 'success') { loadQnaList(); }
+              else { alert('권한이 없거나 처리에 실패했습니다.'); }
+            })
+            .catch(error => console.error('Error:', error));
+          }
+
+          window.onload = function() {
+            loadQnaList();
+            setInterval(loadQnaList, 3000);
+          };
+        </script>
+      <% } %>
+
+    </div><!-- /lm-body -->
+  </div><!-- /lm-main -->
+
+  <!-- ══════════ 우측 멤버 명단 (온/오프라인 없이 인원 구성만) ══════════ -->
+  <div class="mem-side">
+    <div class="mem-head">참여 멤버 <span class="mem-count"><%= members.size() %></span></div>
+
+    <div class="mem-group">교수 <span><%= profCount %></span></div>
+    <% for (MemberVO mv : members) { if (mv.getRole() != 1) continue; %>
+      <div class="mem">
+        <div class="mem-av prof"><%= two(mv.getName()) %></div>
+        <div class="mem-info">
+          <div class="mem-name"><%= mv.getName() %></div>
+          <div class="mem-sub">교수<%= mv.getUser_id().equals(channel.getUser_id()) ? " · 개설자" : "" %></div>
+        </div>
+      </div>
+    <% } %>
+
+    <div class="mem-group">학생 <span><%= stuCount %></span></div>
+    <% if (stuCount == 0) { %>
+      <div class="mem-empty">아직 입장한 학생이 없어요.</div>
+    <% } %>
+    <% for (MemberVO mv : members) { if (mv.getRole() == 1) continue; %>
+      <div class="mem">
+        <div class="mem-av"><%= two(mv.getName()) %></div>
+        <div class="mem-info">
+          <div class="mem-name"><%= mv.getName() %></div>
+          <div class="mem-sub">학생</div>
+        </div>
+      </div>
+    <% } %>
+  </div>
+
+</div><!-- /lm-app -->
 </body>
 </html>

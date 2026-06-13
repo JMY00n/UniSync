@@ -7,6 +7,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import javax.naming.InitialContext;
 import javax.sql.DataSource;
+import member.MemberVO;
 
 public class ChannelDAO {
     // 1. 싱글톤 패턴 적용 (하나의 객체만 생성)
@@ -553,6 +554,44 @@ public class ChannelDAO {
             }
         } catch (Exception e) {
             System.out.println("🚨 [ChannelDAO] 최근 활동 조회(학생) 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return list;
+    }
+
+    // 20. 특정 채널의 참여 멤버 명단 (개설 교수 + 입장한 학생 전체)
+    //  - 온/오프라인 상태 없이, 누가 이 채널에 속해 있는지 명단만 조회
+    //  - 정렬: 교수(role=1) 먼저 → 그다음 이름순
+    public ArrayList<MemberVO> getChannelMembers(int channel_id) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        ArrayList<MemberVO> list = new ArrayList<>();
+        try {
+            conn = getConnection();
+            String sql = "SELECT m.user_id, m.name, m.role FROM member m "
+                       + "WHERE m.user_id IN ( "
+                       + "    SELECT user_id FROM channel WHERE channel_id = ? "
+                       + "    UNION "
+                       + "    SELECT user_id FROM channel_list WHERE channel_id = ? "
+                       + ") ORDER BY m.role DESC, m.name";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, channel_id);
+            pstmt.setInt(2, channel_id);
+            rs = pstmt.executeQuery();
+            while (rs.next()) {
+                MemberVO mv = new MemberVO();
+                mv.setUser_id(rs.getString("user_id"));
+                mv.setName(rs.getString("name"));
+                mv.setRole(rs.getInt("role"));
+                list.add(mv);
+            }
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 채널 멤버 명단 조회 중 에러 발생!");
             e.printStackTrace();
         } finally {
             if (rs != null) try { rs.close(); } catch (Exception e) {}

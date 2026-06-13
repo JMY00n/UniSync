@@ -87,7 +87,7 @@
             for (ChannelVO c : channelList) {
                 String cls = "c" + ((ri % 3) + 1);
         %>
-        <a class="ri <%= cls %>" href="../channel/lectureMain.jsp?channel_id=<%= c.getChannel_id() %>" title="<%= c.getChannel_name() %>"><%= two(c.getChannel_name()) %></a>
+        <a class="ri <%= cls %>" href="../channel/lectures/lectureMain.jsp?channel_id=<%= c.getChannel_id() %>" title="<%= c.getChannel_name() %>"><%= two(c.getChannel_name()) %></a>
         <%      ri++;
             }
         %>
@@ -183,7 +183,7 @@
                             <div class="cc-name"><%= c.getChannel_name() %></div>
                             <div class="cc-code">
                                 <span>입장 코드</span>
-                                <span class="code-pill"><%= c.getEntry_code() %><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
+                                <span class="code-pill" onclick="copyCode('<%= c.getEntry_code() %>')" title="클릭하면 복사돼요"><%= c.getEntry_code() %><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></span>
                             </div>
                         </div>
                     </div>
@@ -266,9 +266,9 @@
         <div class="dash-foot">
             <span class="foot-brand">UniSync · JSP 기말과제</span>
             <div class="foot-team">
-                <span class="tm"><b>이름</b>윤정민</span>
-                <span class="tm"><b>이름</b>김강일</span>
-                <span class="tm"><b>이름</b>정예찬</span>
+                <span class="tm"><b>이름</b> 백엔드</span>
+                <span class="tm"><b>이름</b> DB 설계</span>
+                <span class="tm"><b>이름</b> 프론트엔드 · 디자인</span>
             </div>
         </div>
 
@@ -318,5 +318,12 @@
 </script>
 <% } %>
 
+<script>
+    // 입장 코드 복사
+    function copyCode(code) {
+        navigator.clipboard.writeText(code);
+        alert("입장 코드가 복사되었습니다: " + code);
+    }
+</script>
 </body>
 </html>
