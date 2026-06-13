@@ -74,7 +74,7 @@
             <button type="button" class="btn-edit" onclick="location.href='updateMaterialForm.jsp?message_id=<%= message_id %>&channel_id=<%= channel_id %>'">수정</button>
             <button type="button" class="btn-del" onclick="if(confirm('이 강의자료를 정말 삭제하시겠습니까?')) location.href='deleteNoticePro.jsp?message_id=<%= message_id %>&channel_id=<%= channel_id %>&menu=material'">삭제</button>
         <% } %>
-        <button type="button" class="btn-list" onclick="location.href='lectureMain.jsp?channel_id=<%= channel_id %>&menu=material'">목록으로</button>
+        <button type="button" class="btn-list" onclick="location.href='../lectures/lectureMain.jsp?channel_id=<%= channel_id %>&menu=material'">목록으로</button>
     </div>
 </div>
 
