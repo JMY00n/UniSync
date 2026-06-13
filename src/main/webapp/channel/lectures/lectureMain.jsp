@@ -80,7 +80,7 @@
         <div>
             <span style="margin-right: 15px;">👨‍🏫 개설 교수: <b><%= channel.getUser_id() %></b></span>
             <span>🔑 입장 코드: <span class="entry_code"><%= channel.getEntry_code() %></span></span>
-            <button onclick="location.href='../dashboard/dashboard.jsp'" style="margin-left: 20px; padding: 6px 12px; cursor: pointer;">나가기</button>
+            <button onclick="location.href='../../dashboard/dashboard.jsp'" style="margin-left: 20px; padding: 6px 12px; cursor: pointer;">나가기</button>
         </div>
     </div>
 

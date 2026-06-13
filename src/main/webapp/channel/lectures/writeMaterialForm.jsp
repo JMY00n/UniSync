@@ -45,7 +45,7 @@
         
         <div class="input_row">
             <label>강의 파일 첨부</label>
-            <input type="file" name="uploadFile" required> </div>
+            <input type="file" name="uploadFile"> </div>
         
         <div class="btn_wrap">
             <button type="submit" class="btn-submit">업로드 완료</button>

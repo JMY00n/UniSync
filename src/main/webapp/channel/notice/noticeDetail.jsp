@@ -68,7 +68,7 @@
     <div class="btn_wrap">
         <% if(userId.equals(msg.getUser_id())) { %>
             <button type="button" class="btn-edit" onclick="location.href='updateNoticeForm.jsp?message_id=<%= message_id %>&channel_id=<%= channel_id %>'">수정</button>
-            <button type="button" class="btn-del" onclick="if(confirm('정말 삭제하시겠습니까?')) location.href='deleteNoticePro.jsp?message_id=<%= message_id %>&channel_id=<%= channel_id %>'">삭제</button>
+            <button type="button" class="btn-del" onclick="if(confirm('정말 삭제하시겠습니까?')) location.href='../notice/deleteNoticePro.jsp?message_id=<%= message_id %>&channel_id=<%= channel_id %>'">삭제</button>
         <% } %>
         <button type="button" class="btn-list" onclick="location.href='../lectures/lectureMain.jsp?channel_id=<%= channel_id %>&menu=notice'">목록으로</button>
     </div>

@@ -11,7 +11,7 @@
 %>
         <script>
             alert("삭제되었습니다.");
-            location.href = "lectureMain.jsp?channel_id=<%= channel_id %>&menu=notice";
+            location.href = "../lectures/lectureMain.jsp?channel_id=<%= channel_id %>&menu=notice";
         </script>
 <%
     } else {
