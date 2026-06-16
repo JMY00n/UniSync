@@ -234,6 +234,28 @@ public class ChannelDAO {
         }
     }
     
+    // 8-1. 강의실 나가기 (학생이 참여 목록에서 빠짐 - leaveChannel)
+    // - channel_list 테이블에서 해당 학생-방 매핑 행을 DELETE (본인 글/멤버십만 제거)
+    public boolean leaveChannel(int channel_id, String user_id) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        try {
+            conn = getConnection();
+            String sql = "DELETE FROM channel_list WHERE channel_id = ? AND user_id = ?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, channel_id);
+            pstmt.setString(2, user_id);
+            return pstmt.executeUpdate() > 0;
+        } catch (Exception e) {
+            System.out.println("🚨 [ChannelDAO] 채널 나가기 중 에러 발생!");
+            e.printStackTrace();
+            return false;
+        } finally {
+            if (pstmt != null) try { pstmt.close(); } catch(Exception e) {}
+            if (conn != null) try { conn.close(); } catch(Exception e) {}
+        }
+    }
+    
  // 9. 입장 코드로 특정 채널(방) 정보 찾기 (학생이 코드로 방 입장할 때 사용)
     public ChannelVO getChannelByCode(String entry_code) {
         Connection conn = null;

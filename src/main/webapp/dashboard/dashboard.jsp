@@ -245,6 +245,8 @@
                         <% if (isProf) { %>
                             <button type="button" class="cc-btn" onclick="location.href='../channel/updateChannelForm.jsp?channel_id=<%= c.getChannel_id() %>'">수정</button>
                             <button type="button" class="cc-btn danger" onclick="if(confirm('정말 [<%= c.getChannel_name() %>] 강의실을 삭제하시겠습니까?\n참여한 학생 정보도 모두 삭제되며 복구할 수 없습니다.')) location.href='../channel/deleteChannelPro.jsp?channel_id=<%= c.getChannel_id() %>';">삭제</button>
+                        <% } else { %>
+                            <button type="button" class="cc-btn danger" onclick="if(confirm('[<%= c.getChannel_name() %>] 강의실에서 나가시겠습니까?\n다시 들어오려면 입장 코드가 필요합니다.')) location.href='../channel/leaveChannelPro.jsp?channel_id=<%= c.getChannel_id() %>';">나가기</button>
                         <% } %>
                         <a class="cc-enter" href="../channel/lectures/lectureMain.jsp?channel_id=<%= c.getChannel_id() %>">입장</a>
                     </div>
@@ -297,9 +299,9 @@
         <div class="dash-foot">
             <span class="foot-brand">UniSync · JSP 기말과제</span>
             <div class="foot-team">
-                <span class="tm"><b>김강일</b> 백엔드</span>
-                <span class="tm"><b>윤정민</b> DB 설계</span>
-                <span class="tm"><b>정예찬</b> 프론트엔드 · 디자인</span>
+                <span class="tm"><b>이름</b> 백엔드</span>
+                <span class="tm"><b>이름</b> DB 설계</span>
+                <span class="tm"><b>이름</b> 프론트엔드 · 디자인</span>
             </div>
         </div>
 
