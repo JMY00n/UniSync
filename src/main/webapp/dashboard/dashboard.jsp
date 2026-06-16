@@ -212,6 +212,15 @@
                     for (ChannelVO c : channelList) {
                         String cls = "c" + ((ci % 3) + 1);
                         int stCnt = cdao.countStudents(c.getChannel_id());
+                        // 교수 표시명: 닉네임(name) 우선, 없으면 아이디 폴백 (학생 화면용)
+                        String profName = c.getUser_id();
+                        if (!isProf) {
+                            try {
+                                MemberVO pv = MemberDAO.getinstance().getMember(c.getUser_id());
+                                if (pv != null && pv.getName() != null && !pv.getName().trim().isEmpty())
+                                    profName = pv.getName();
+                            } catch (Exception e) {}
+                        }
                 %>
                 <div class="cc">
                     <div class="cc-head">
@@ -228,7 +237,7 @@
                         <% if (isProf) { %>
                             <span>수강생 <b><%= stCnt %></b></span>
                         <% } else { %>
-                            <span>교수 <b><%= c.getUser_id() %></b></span>
+                            <span>교수 <b><%= profName %></b></span>
                             <span>수강생 <b><%= stCnt %></b></span>
                         <% } %>
                     </div>
