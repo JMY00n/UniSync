@@ -18,8 +18,10 @@
         return AV_COLORS[Math.abs(h) % AV_COLORS.length];
     }
     String initial(String s) {
-        if (s == null || s.trim().isEmpty()) return "?";
-        return s.trim().substring(0, 1).toUpperCase();
+        if (s == null) return "?";
+        String x = s.replaceAll("\\s", "");
+        if (x.isEmpty()) return "?";
+        return x.substring(0, 1);
     }
 %>
 <%
@@ -45,12 +47,16 @@
             boolean isMine   = (userId != null && userId.equals(msg.getUser_id()));
             boolean isPinned = (msg.getIs_pinned() == 1);
 
-            // 작성자 이름(닉네임) 조회 — 없으면 아이디로 폴백
+            // 작성자 이름(닉네임) 조회 — 없으면 아이디로 폴백 / 학생만 학번 표기
             String authorName = msg.getUser_id();
+            boolean authorIsStudent = true;
             try {
                 MemberVO author = MemberDAO.getinstance().getMember(msg.getUser_id());
-                if (author != null && author.getName() != null && !author.getName().trim().isEmpty())
-                    authorName = author.getName();
+                if (author != null) {
+                    if (author.getName() != null && !author.getName().trim().isEmpty())
+                        authorName = author.getName();
+                    authorIsStudent = (author.getRole() != 1);
+                }
             } catch (Exception e) {}
 
             String color = avatarColor(msg.getUser_id());
@@ -80,8 +86,9 @@
                 <!-- 본문 -->
                 <div style="flex:1; min-width:0;">
                     <div style="display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:5px;">
-                        <% if(isPinned) { %><span style="font-size:11px; font-weight:800; color:#D9803F;">📌 고정</span><% } %>
+                        <% if(isPinned) { %><span style="display:inline-flex; align-items:center; gap:3px; font-size:11px; font-weight:800; color:#2E5BB8;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>고정</span><% } %>
                         <span style="font-weight:700; color:#17171A; font-size:14px;"><%= authorName %></span>
+                        <% if(authorIsStudent && !authorName.equals(msg.getUser_id())){ %><span style="color:#A1A1AA; font-size:12px;">(<%= msg.getUser_id() %>)</span><% } %>
                         <span style="color:#A1A1AA; font-size:12px;"><%= timeFmt.format(msg.getCreated_at()) %></span>
 
                         <% if(isMine) { %>
@@ -94,7 +101,7 @@
                             <% if(isPinned) { %>
                                 <button type="button" onclick="togglePin(<%= msg.getMessage_id() %>, false)" style="font-size:11px; padding:3px 10px; cursor:pointer; border:none; background:#A1A1AA; color:#fff; border-radius:6px;">고정 해제</button>
                             <% } else { %>
-                                <button type="button" onclick="togglePin(<%= msg.getMessage_id() %>, true)" style="font-size:11px; padding:3px 10px; cursor:pointer; border:1px solid #E4C200; background:#FFF9DB; color:#9A6B00; border-radius:6px; font-weight:700;">상단 고정</button>
+                                <button type="button" onclick="togglePin(<%= msg.getMessage_id() %>, true)" style="display:inline-flex; align-items:center; gap:4px; font-size:11px; padding:3px 10px; cursor:pointer; border:1px solid #D4D4D8; background:#fff; color:#52525B; border-radius:6px; font-weight:700;"><svg viewBox="0 0 24 24" fill="none" stroke="#2E5BB8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="12" height="12"><path d="M12 17v5"/><path d="M9 10.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24V16a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V7a1 1 0 0 1 1-1 2 2 0 0 0 0-4H8a2 2 0 0 0 0 4 1 1 0 0 1 1 1z"/></svg>상단 고정</button>
                             <% } %>
                             </span>
                         <% } %>

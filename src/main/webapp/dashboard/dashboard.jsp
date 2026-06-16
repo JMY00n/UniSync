@@ -64,6 +64,36 @@
     // 최근 활동 2열 분할 (홀수면 왼쪽이 1개 더)
     int rTotal = recent.size();
     int rHalf  = (rTotal + 1) / 2;
+
+    // ── 강의실 정렬 (최신순 / 오래된순 / 인기순) ──
+    String sort = request.getParameter("sort");
+    if (sort == null) sort = "newest";
+    final String sortMode = sort;
+
+    // 인기순 기준: 최근활동 목록에서 채널명이 많이 등장할수록 활발(=인기)
+    final java.util.Map<String,Integer> actCount = new java.util.HashMap<String,Integer>();
+    for (ActivityVO a : recent) {
+        String k = a.getChannel_name();
+        if (k == null) k = "";
+        actCount.put(k, (actCount.containsKey(k) ? actCount.get(k) : 0) + 1);
+    }
+
+    java.util.Collections.sort(channelList, new java.util.Comparator<ChannelVO>() {
+        public int compare(ChannelVO x, ChannelVO y) {
+            if ("popular".equals(sortMode)) {
+                String kx = x.getChannel_name() == null ? "" : x.getChannel_name();
+                String ky = y.getChannel_name() == null ? "" : y.getChannel_name();
+                int cx = actCount.containsKey(kx) ? actCount.get(kx) : 0;
+                int cy = actCount.containsKey(ky) ? actCount.get(ky) : 0;
+                if (cx != cy) return cy - cx;               // 최근활동 많은 순
+                return y.getChannel_id() - x.getChannel_id(); // 동률이면 최신
+            } else if ("oldest".equals(sortMode)) {
+                return x.getChannel_id() - y.getChannel_id();
+            } else { // newest
+                return y.getChannel_id() - x.getChannel_id();
+            }
+        }
+    });
 %>
 <!DOCTYPE html>
 <html lang="ko">
@@ -146,6 +176,13 @@
             <div class="sec-head">
                 <span class="sec-title"><%= isProf ? "내가 개설한 강의실" : "내가 입장한 강의실" %></span>
                 <span class="sec-count"><%= channelList.size() %>개</span>
+                <% if (!channelList.isEmpty()) { %>
+                <select class="sort-select" onchange="location.href='dashboard.jsp?sort='+this.value">
+                    <option value="newest"  <%= "newest".equals(sort)  ? "selected" : "" %>>최신순</option>
+                    <option value="oldest"  <%= "oldest".equals(sort)  ? "selected" : "" %>>오래된순</option>
+                    <option value="popular" <%= "popular".equals(sort) ? "selected" : "" %>>인기순</option>
+                </select>
+                <% } %>
             </div>
 
             <% if (channelList.isEmpty()) { %>
@@ -226,13 +263,14 @@
                     </div>
                 <% } else { %>
                 <div class="acts2">
-                    <div class="act-col">
                     <%
-                        for (int i = 0; i < rHalf; i++) {
+                        for (int i = 0; i < rTotal; i++) {
                             ActivityVO a = recent.get(i);
                             String dot = "c" + ((i % 3) + 1);
+                            // 홀수 개수일 때 마지막 행은 양 칸에 걸쳐 공백 제거
+                            boolean span = (rTotal % 2 == 1) && (i == rTotal - 1);
                     %>
-                        <div class="row">
+                        <div class="row<%= span ? " row-span" : "" %>">
                             <span class="row-dot <%= dot %>"></span>
                             <span class="row-ch"><%= a.getChannel_name() %></span>
                             <span class="row-board"><%= a.getBoard_name() %></span>
@@ -240,22 +278,6 @@
                             <span class="row-time"><%= fmtDate(a.getCreated_at()) %></span>
                         </div>
                     <%  } %>
-                    </div>
-                    <div class="act-col">
-                    <%
-                        for (int i = rHalf; i < rTotal; i++) {
-                            ActivityVO a = recent.get(i);
-                            String dot = "c" + ((i % 3) + 1);
-                    %>
-                        <div class="row">
-                            <span class="row-dot <%= dot %>"></span>
-                            <span class="row-ch"><%= a.getChannel_name() %></span>
-                            <span class="row-board"><%= a.getBoard_name() %></span>
-                            <span class="row-txt"><%= a.getTitle() %></span>
-                            <span class="row-time"><%= fmtDate(a.getCreated_at()) %></span>
-                        </div>
-                    <%  } %>
-                    </div>
                 </div>
                 <% } %>
             </div>

@@ -13,6 +13,23 @@
         String x = s.replaceAll("\\s", "");
         return x.length() <= 2 ? x : x.substring(0, 2);
     }
+    // 아바타용 앞 1글자
+    String one(String s) {
+        if (s == null) return "";
+        String x = s.replaceAll("\\s", "");
+        return x.isEmpty() ? "" : x.substring(0, 1);
+    }
+    // 회원 id 기반 고정 아바타 색상 (Q&A와 동일 팔레트 → 화면마다 같은 사람은 같은 색)
+    static final String[] AV_COLORS = {
+        "#6B65C8", "#1D9E75", "#D9803F", "#C0508F",
+        "#3F8FD9", "#D94F4F", "#8A6FE0", "#2FA8A8"
+    };
+    String avatarColor(String s) {
+        if (s == null || s.isEmpty()) return AV_COLORS[0];
+        int h = 0;
+        for (int i = 0; i < s.length(); i++) h = h * 31 + s.charAt(i);
+        return AV_COLORS[Math.abs(h) % AV_COLORS.length];
+    }
 %>
 <%
     // 1. 세션 체크
@@ -114,11 +131,11 @@
       </a>
       <a class="nav-item<%= menu.equals("qna") ? " active" : "" %>" href="lectureMain.jsp?channel_id=<%= channel_id %>&menu=qna">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg>
-        실시간 Q&amp;A
+        Q&amp;A
       </a>
     </div>
     <div class="ch-side-me">
-      <div class="me-av"><%= name.substring(0,1) %></div>
+      <div class="me-av" style="background:<%= avatarColor(id) %>; color:#fff;"><%= one(name) %></div>
       <div class="me-info">
         <div class="me-name"><%= name %></div>
         <div class="me-role"><%= isProf ? "교수" : "학생" %></div>
@@ -179,7 +196,9 @@
                 <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
                 <td class="col-file">
                   <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
-                    <span class="file-chip">첨부</span>
+                    <span class="file-ico" title="첨부파일 있음" style="display:inline-flex;align-items:center;justify-content:center;color:var(--primary);">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.5"/></svg>
+                    </span>
                   <% } else { %><span class="dash">-</span><% } %>
                 </td>
               </tr>
@@ -200,7 +219,7 @@
           </div>
         <% } else { %>
           <table class="board-table">
-            <thead><tr><th class="col-no">번호</th><th>자료 제목</th><th class="col-date">등록일</th><th class="col-file">받기</th></tr></thead>
+            <thead><tr><th class="col-no">번호</th><th>자료 제목</th><th class="col-date">등록일</th><th class="col-file">다운로드</th></tr></thead>
             <tbody>
             <% int count = materialList.size();
                for (MessageVO msg : materialList) { %>
@@ -210,7 +229,9 @@
                 <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
                 <td class="col-file">
                   <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
-                    <a href="../../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" class="file-chip dl" onclick="event.stopPropagation();">받기</a>
+                    <a href="../../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" title="다운로드" onclick="event.stopPropagation();" style="display:inline-flex;align-items:center;justify-content:center;color:#1D9E75;">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>
+                    </a>
                   <% } else { %><span class="dash">-</span><% } %>
                 </td>
               </tr>
@@ -353,7 +374,7 @@
     <div class="mem-group">교수 <span><%= profCount %></span></div>
     <% for (MemberVO mv : members) { if (mv.getRole() != 1) continue; %>
       <div class="mem">
-        <div class="mem-av prof"><%= two(mv.getName()) %></div>
+        <div class="mem-av prof" style="background:<%= avatarColor(mv.getUser_id()) %>; color:#fff;"><%= one(mv.getName()) %></div>
         <div class="mem-info">
           <div class="mem-name"><%= mv.getName() %></div>
           <div class="mem-sub">교수</div>
@@ -367,10 +388,10 @@
     <% } %>
     <% for (MemberVO mv : members) { if (mv.getRole() == 1) continue; %>
       <div class="mem">
-        <div class="mem-av"><%= two(mv.getName()) %></div>
+        <div class="mem-av" style="background:<%= avatarColor(mv.getUser_id()) %>; color:#fff;"><%= one(mv.getName()) %></div>
         <div class="mem-info">
           <div class="mem-name"><%= mv.getName() %></div>
-          <div class="mem-sub">학생</div>
+          <div class="mem-sub">학생 · <%= mv.getUser_id() %></div>
         </div>
       </div>
     <% } %>

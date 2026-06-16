@@ -32,8 +32,10 @@ body { overflow: hidden; }
 .ri {
   width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
   font-size: 12px; font-weight: 700; opacity: .66; color: #fff; text-decoration: none; cursor: pointer; position: relative;
-  box-shadow: 0 3px 8px rgba(0,0,0,.18); transition: opacity .16s, border-radius .16s, transform .16s;
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 3px 8px rgba(0,0,0,.18); transition: opacity .16s, border-radius .16s, transform .16s, border-color .16s;
 }
+.ri:hover, .ri.active { border-color: rgba(255,255,255,0.38); }
 .ri::before {
   content: ''; position: absolute; left: -12px; top: 50%; transform: translateY(-50%);
   width: 4px; height: 0; background: #fff; border-radius: 0 3px 3px 0; transition: height .18s;
@@ -123,6 +125,7 @@ body { overflow: hidden; }
 .col-no { width: 70px; color: var(--text3); }
 .col-date { width: 160px; color: var(--text3); font-size: 12.5px; white-space: nowrap; }
 .col-file { width: 90px; }
+.board-table th.col-file, .board-table td.col-file { text-align: center; }
 .col-title a { color: var(--text); font-weight: 600; text-decoration: none; }
 .col-title a:hover { color: var(--primary); }
 .file-chip { display: inline-block; font-size: 11.5px; font-weight: 600; color: var(--primary); background: var(--primary-light); border-radius: 6px; padding: 3px 9px; text-decoration: none; }

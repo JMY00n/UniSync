@@ -107,7 +107,58 @@ public class MessageDAO {
         return msg;
     }
 
-    // 5. 게시글 작성 (INSERT)
+    // 4-1. 이전글(더 오래된 글) / 다음글(더 최신 글) 조회 — 같은 채널·게시판 내에서 message_id 기준
+    public MessageVO getPrevMessage(int channel_id, String board_name, int message_id) {
+        return getAdjacentMessage(channel_id, board_name, message_id, true);
+    }
+
+    public MessageVO getNextMessage(int channel_id, String board_name, int message_id) {
+        return getAdjacentMessage(channel_id, board_name, message_id, false);
+    }
+
+    private MessageVO getAdjacentMessage(int channel_id, String board_name, int message_id, boolean prev) {
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        MessageVO msg = null;
+
+        // prev(이전글) = 더 오래된 글: message_id < ? 중 가장 큰 것
+        // next(다음글) = 더 최신 글: message_id > ? 중 가장 작은 것
+        String cmp = prev ? "<" : ">";
+        String ord = prev ? "DESC" : "ASC";
+
+        try {
+            conn = getConnection();
+            String sql = "SELECT * FROM message WHERE channel_id = ? AND board_name = ? AND message_id " + cmp
+                       + " ? ORDER BY message_id " + ord + " LIMIT 1";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, channel_id);
+            pstmt.setString(2, board_name);
+            pstmt.setInt(3, message_id);
+            rs = pstmt.executeQuery();
+
+            if (rs.next()) {
+                msg = new MessageVO();
+                msg.setMessage_id(rs.getInt("message_id"));
+                msg.setChannel_id(rs.getInt("channel_id"));
+                msg.setBoard_name(rs.getString("board_name"));
+                msg.setUser_id(rs.getString("user_id"));
+                msg.setTitle(rs.getString("title"));
+                msg.setContent(rs.getString("content"));
+                msg.setCreated_at(rs.getTimestamp("created_at"));
+                msg.setFile_path(rs.getString("file_path"));
+                msg.setIs_pinned(rs.getInt("is_pinned"));
+            }
+        } catch (Exception e) {
+            System.out.println("🚨 [MessageDAO] 이전글/다음글 조회 중 에러 발생!");
+            e.printStackTrace();
+        } finally {
+            if (rs != null) try { rs.close(); } catch (Exception e) {}
+            if (pstmt != null) try { pstmt.close(); } catch (Exception e) {}
+            if (conn != null) try { conn.close(); } catch (Exception e) {}
+        }
+        return msg;
+    }
     public boolean insertMessage(MessageVO msg) {
         Connection conn = null;
         PreparedStatement pstmt = null;
