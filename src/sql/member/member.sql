@@ -64,17 +64,17 @@ CREATE TABLE message (
     content TEXT NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 시간 자동 입력
     file_path VARCHAR(200), -- 파일 첨부 기능용
+    is_pinned INT NOT NULL DEFAULT 0,
     
     -- 외래키 설정: subboard의 복합키(channel_id, board_name)를 묶어서 정확히 참조
     FOREIGN KEY (channel_id, board_name) 
         REFERENCES subboard(channel_id, board_name) 
         ON DELETE CASCADE,
         
-    FOREIGN KEY (user_id) 
-        REFERENCES member(user_id) 
+    FOREIGN KEY (user_id)
+        REFERENCES member(user_id)
         ON DELETE CASCADE
 );
-
 
 -- 6. 댓글 테이블 (Comments)
 CREATE TABLE comment (
@@ -87,8 +87,6 @@ CREATE TABLE comment (
     FOREIGN KEY (user_id) REFERENCES member(user_id) ON DELETE CASCADE
 );
 
-
-ALTER TABLE message ADD is_pinned INT NOT NULL DEFAULT 0;
 -- 0이면 일반 채팅글, 1이면 상단 고정글!
 -- ════════════════ [ 확인용 조회 쿼리 ] ════════════════
 SELECT * FROM channel;
