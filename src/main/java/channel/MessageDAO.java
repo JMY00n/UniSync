@@ -39,13 +39,14 @@ public class MessageDAO {
 
         try {
             conn = getConnection();
-            // [팩트 체크] 상단 고정된 글(is_pinned=1)을 먼저 띄우고, 나머지는 최신순(message_id DESC)으로 정렬!
+         // 최신 글이 위에 오도록 message_id 기준 내림차순 정렬
             String sql = "SELECT * FROM message WHERE channel_id = ? AND board_name = ? ORDER BY is_pinned DESC, message_id DESC";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, channel_id);
             pstmt.setString(2, board_name);
             rs = pstmt.executeQuery();
-
+            
+         // ResultSet에서 데이터를 꺼내 VO 리스트로 묶어 프론트엔드로 반환
             while (rs.next()) {
                 MessageVO msg = new MessageVO();
                 msg.setMessage_id(rs.getInt("message_id"));
@@ -107,14 +108,15 @@ public class MessageDAO {
         return msg;
     }
 
-    // 5. 게시글 작성 (INSERT)
+    // 5. 게시글 작성 (INSERT) 전달받은 게시글 정보(VO)를 DB에 저장하는 기본 INSERT 로직
     public boolean insertMessage(MessageVO msg) {
         Connection conn = null;
         PreparedStatement pstmt = null;
         try {
             conn = getConnection();
-            // is_pinned는 DB에서 자동으로 0(기본값)이 들어가므로 INSERT에 안 넣어도 됨
-            String sql = "INSERT INTO message (channel_id, board_name, user_id, title, content, file_path) VALUES (?, ?, ?, ?, ?, ?)";
+            // 입력받은 값들을 ? 자리에 안전하게 매핑 (SQL 인젝션 방지)
+            String sql = "INSERT INTO message (channel_id, board_name, user_id, title, content, file_path) "
+            		+ "VALUES (?, ?, ?, ?, ?, ?)";
             pstmt = conn.prepareStatement(sql);
             pstmt.setInt(1, msg.getChannel_id());
             pstmt.setString(2, msg.getBoard_name());
@@ -122,7 +124,7 @@ public class MessageDAO {
             pstmt.setString(4, msg.getTitle());
             pstmt.setString(5, msg.getContent());
             pstmt.setString(6, msg.getFile_path()); 
-            
+         // 쿼리 실행 후 성공 여부 반환
             return pstmt.executeUpdate() > 0;
         } catch (Exception e) {
             System.out.println("🚨 [MessageDAO] 게시글 작성 중 에러 발생!");

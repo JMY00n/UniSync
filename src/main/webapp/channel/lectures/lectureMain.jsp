@@ -261,6 +261,7 @@
               .catch(error => console.error('Error:', error));
           }
 
+       // 입력창의 질문 내용을 백엔드로 전송하는 비동기 함수
           function submitQna() {
             const contentObj = document.getElementById('qnaContent');
             const content = contentObj.value.trim();
@@ -273,6 +274,7 @@
             })
             .then(response => response.text())
             .then(result => {
+            	// DB 저장에 성공하면 입력창을 비우고 게시글 목록만 새로 고침
               if (result.trim() === 'success') { contentObj.value = ''; loadQnaList(); }
               else { alert('글 등록에 실패했습니다.'); }
             })
