@@ -44,18 +44,16 @@ public class ChannelDAO {
             conn = getConnection();
             
             // 트랜잭션 시작 (방과 게시판 생성을 하나로 묶음)
-            conn.setAutoCommit(false);
+            conn.setAutoCommit(false);	// 트랜잭션 시작 (방 + 게시판 생성을 하나로 묶음)
 
-            // 1단계: 방(channel) 데이터 INSERT
+         // 1. 강의실(channel) INSERT 및 방금 생성된 방 번호(PK) 요청
             String sql1 = "INSERT INTO channel(user_id, channel_name, entry_code) VALUES(?, ?, ?)";
             // Statement.RETURN_GENERATED_KEYS를 통해 자동 생성된 채널 ID 확보
             pstmt = conn.prepareStatement(sql1, Statement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, channel.getUser_id());
             pstmt.setString(2, channel.getChannel_name());
             pstmt.setString(3, channel.getEntry_code());
-
             int result1 = pstmt.executeUpdate();
-
             if (result1 > 0) {
                 // 2단계: 방금 생성된 방 번호(channel_id) 가져오기
                 rs = pstmt.getGeneratedKeys();
@@ -63,19 +61,16 @@ public class ChannelDAO {
                 if (rs.next()) {
                     newChannelId = rs.getInt(1); 
                 }
-
                 if (newChannelId != -1) {
                     // 3단계: 팀장님 복합키 구조에 맞춰 subboard 테이블에 게시판 3개 삽입
                     String sql2 = "INSERT INTO subboard(channel_id, board_name) VALUES(?, ?)";
                     pstmtBoard = conn.prepareStatement(sql2);
-
                     String[] boardNames = {"공지사항", "강의자료", "Q&A"};
                     for (String bName : boardNames) {
                         pstmtBoard.setInt(1, newChannelId);
                         pstmtBoard.setString(2, bName);
                         pstmtBoard.executeUpdate(); 
                     }
-
                     // 모든 작업 성공 시 DB 반영
                     conn.commit();
                     isSuccess = true;
