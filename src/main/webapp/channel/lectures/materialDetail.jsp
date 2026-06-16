@@ -12,8 +12,16 @@
         return;
     }
 
-    int message_id = Integer.parseInt(request.getParameter("message_id"));
     String channel_id = request.getParameter("channel_id");
+    String midParam = request.getParameter("message_id");
+    if (midParam == null || !midParam.matches("\\d+")) {
+        if (channel_id != null && channel_id.matches("\\d+"))
+            response.sendRedirect("../lectures/lectureMain.jsp?channel_id=" + channel_id + "&menu=material");
+        else
+            response.sendRedirect("../../dashboard/dashboard.jsp");
+        return;
+    }
+    int message_id = Integer.parseInt(midParam);
 
     MessageDAO mdao = MessageDAO.getInstance();
     MessageVO msg = mdao.getMessageById(message_id);
