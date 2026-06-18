@@ -196,17 +196,11 @@
                 </td>
                 <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
                 <td class="col-file">
-                <% 
-                    if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { 
-                        String fName = msg.getFile_path();
-                        String shortName = fName.length() > 12 ? fName.substring(0, 12) + "..." : fName;
-                %>
-                  <a href="<%= request.getContextPath() %>/upload/<%= java.net.URLEncoder.encode(fName, "UTF-8").replaceAll("\\+", "%20") %>" download="<%= fName %>" title="<%= fName %> (클릭하여 다운로드)" onclick="event.stopPropagation();" style="display: inline-block; text-decoration: none; color: #1D9E75; font-weight: bold; font-size: 13px;">
-                    💾 <%= shortName %>
-                  </a>
-                <% } else { %>
-                  <span class="dash">-</span>
-                <% } %>
+                <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
+                  <span class="file-ico" title="첨부파일 있음" style="display:inline-flex;align-items:center;justify-content:center;color:var(--primary);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.5"/></svg>
+                  </span>
+                <% } else { %><span class="dash">-</span><% } %>
                 </td>
               </tr>
             <% } %>
@@ -226,7 +220,7 @@
           </div>
         <% } else { %>
           <table class="board-table">
-            <thead><tr><th class="col-no">번호</th><th>자료 제목</th><th class="col-date">등록일</th><th class="col-file">첨부파일</th></tr></thead>
+            <thead><tr><th class="col-no">번호</th><th>자료 제목</th><th class="col-date">등록일</th><th class="col-file">다운로드</th></tr></thead>
             <tbody>
             <% int count = materialList.size();
                for (MessageVO msg : materialList) { %>
@@ -239,18 +233,11 @@
                 </td>
                 <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
                 <td class="col-file">
-                <% 
-                    if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { 
-                        String fName = msg.getFile_path();
-                        String shortName = fName.length() > 12 ? fName.substring(0, 12) + "..." : fName;
-                %>
-                  <a href="<%= request.getContextPath() %>/upload/<%= java.net.URLEncoder.encode(fName, "UTF-8").replaceAll("\\+", "%20") %>" download="<%= fName %>" title="<%= fName %> (클릭하여 다운로드)" onclick="event.stopPropagation();" style="display: inline-flex; align-items: center; justify-content: center; color: #1D9E75; text-decoration: none; font-weight: bold; font-size: 13px;">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" style="margin-right:4px;"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>
-                    <%= shortName %>
+                <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
+                  <a href="../../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" title="다운로드" onclick="event.stopPropagation();" style="display:inline-flex;align-items:center;justify-content:center;color:#1D9E75;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>
                   </a>
-                <% } else { %>
-                  <span class="dash">-</span>
-                <% } %>
+                <% } else { %><span class="dash">-</span><% } %>
                 </td>
               </tr>
             <% } %>
