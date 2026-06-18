@@ -90,7 +90,6 @@
 <body>
 <div class="lm-app">
 
-  <!-- ══════════ 레일 ══════════ -->
   <div class="rail">
     <a class="rail-logo" href="../../dashboard/dashboard.jsp" title="대시보드">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
@@ -113,7 +112,6 @@
     </div>
   </div>
 
-  <!-- ══════════ 채널 사이드바 ══════════ -->
   <div class="ch-side">
     <div class="ch-side-top">
       <div class="ch-name"><%= channel.getChannel_name() %></div>
@@ -143,7 +141,6 @@
     </div>
   </div>
 
-  <!-- ══════════ 메인(게시판 본문) ══════════ -->
   <div class="lm-main">
     <div class="lm-top">
       <div class="lm-title">
@@ -192,14 +189,24 @@
                for (MessageVO msg : noticeList) { %>
               <tr onclick="location.href='../notice/noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>'">
                 <td class="col-no"><%= count-- %></td>
-                <td class="col-title"><a href="../notice/noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>"><%= msg.getTitle() %></a></td>
+                <td class="col-title">
+                  <a href="../notice/noticeDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>" style="display:inline-block; max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle;" title="<%= msg.getTitle() %>">
+                    <%= msg.getTitle() %>
+                  </a>
+                </td>
                 <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
                 <td class="col-file">
-                  <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
-                    <span class="file-ico" title="첨부파일 있음" style="display:inline-flex;align-items:center;justify-content:center;color:var(--primary);">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.5"/></svg>
-                    </span>
-                  <% } else { %><span class="dash">-</span><% } %>
+                <% 
+                    if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { 
+                        String fName = msg.getFile_path();
+                        String shortName = fName.length() > 12 ? fName.substring(0, 12) + "..." : fName;
+                %>
+                  <a href="<%= request.getContextPath() %>/upload/<%= java.net.URLEncoder.encode(fName, "UTF-8").replaceAll("\\+", "%20") %>" download="<%= fName %>" title="<%= fName %> (클릭하여 다운로드)" onclick="event.stopPropagation();" style="display: inline-block; text-decoration: none; color: #1D9E75; font-weight: bold; font-size: 13px;">
+                    💾 <%= shortName %>
+                  </a>
+                <% } else { %>
+                  <span class="dash">-</span>
+                <% } %>
                 </td>
               </tr>
             <% } %>
@@ -219,20 +226,31 @@
           </div>
         <% } else { %>
           <table class="board-table">
-            <thead><tr><th class="col-no">번호</th><th>자료 제목</th><th class="col-date">등록일</th><th class="col-file">다운로드</th></tr></thead>
+            <thead><tr><th class="col-no">번호</th><th>자료 제목</th><th class="col-date">등록일</th><th class="col-file">첨부파일</th></tr></thead>
             <tbody>
             <% int count = materialList.size();
                for (MessageVO msg : materialList) { %>
               <tr onclick="location.href='materialDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>'">
                 <td class="col-no"><%= count-- %></td>
-                <td class="col-title"><a href="materialDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>"><%= msg.getTitle() %></a></td>
+                <td class="col-title">
+                  <a href="materialDetail.jsp?message_id=<%= msg.getMessage_id() %>&channel_id=<%= channel_id %>" style="display:inline-block; max-width:250px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; vertical-align:middle;" title="<%= msg.getTitle() %>">
+                    <%= msg.getTitle() %>
+                  </a>
+                </td>
                 <td class="col-date"><%= sdf.format(msg.getCreated_at()) %></td>
                 <td class="col-file">
-                  <% if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { %>
-                    <a href="../../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>" title="다운로드" onclick="event.stopPropagation();" style="display:inline-flex;align-items:center;justify-content:center;color:#1D9E75;">
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="17" height="17"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>
-                    </a>
-                  <% } else { %><span class="dash">-</span><% } %>
+                <% 
+                    if (msg.getFile_path() != null && !msg.getFile_path().equals("")) { 
+                        String fName = msg.getFile_path();
+                        String shortName = fName.length() > 12 ? fName.substring(0, 12) + "..." : fName;
+                %>
+                  <a href="<%= request.getContextPath() %>/upload/<%= java.net.URLEncoder.encode(fName, "UTF-8").replaceAll("\\+", "%20") %>" download="<%= fName %>" title="<%= fName %> (클릭하여 다운로드)" onclick="event.stopPropagation();" style="display: inline-flex; align-items: center; justify-content: center; color: #1D9E75; text-decoration: none; font-weight: bold; font-size: 13px;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15" style="margin-right:4px;"><path d="M12 3v12"/><path d="m7 12 5 5 5-5"/><path d="M5 21h14"/></svg>
+                    <%= shortName %>
+                  </a>
+                <% } else { %>
+                  <span class="dash">-</span>
+                <% } %>
                 </td>
               </tr>
             <% } %>
@@ -248,7 +266,7 @@
         </div>
         <div id="qnaListArea" class="qna-list"></div>
 
-        <%-- Q&A 수정 글래스 모달 (리스트 밖 → 3초 새로고침에 안 지워짐) --%>
+        <%-- Q&A 수정 글래스 모달 --%>
         <div class="wm-overlay" id="qnaEditModal" onclick="if(event.target===this) closeQnaEdit()">
           <div class="wm-glass" style="width:560px;">
             <div class="wm-head">
@@ -282,7 +300,6 @@
               .catch(error => console.error('Error:', error));
           }
 
-       // 입력창의 질문 내용을 백엔드로 전송하는 비동기 함수
           function submitQna() {
             const contentObj = document.getElementById('qnaContent');
             const content = contentObj.value.trim();
@@ -295,7 +312,6 @@
             })
             .then(response => response.text())
             .then(result => {
-            	// DB 저장에 성공하면 입력창을 비우고 게시글 목록만 새로 고침
               if (result.trim() === 'success') { contentObj.value = ''; loadQnaList(); }
               else { alert('글 등록에 실패했습니다.'); }
             })
@@ -366,11 +382,7 @@
         </script>
       <% } %>
 
-    </div><!-- /lm-body -->
-  </div><!-- /lm-main -->
-
-  <!-- ══════════ 우측 멤버 명단 (온/오프라인 없이 인원 구성만) ══════════ -->
-  <div class="mem-side">
+    </div></div><div class="mem-side">
     <div class="mem-head">참여 멤버 <span class="mem-count"><%= members.size() %></span></div>
 
     <div class="mem-group">교수 <span><%= profCount %></span></div>
@@ -456,6 +468,5 @@
   </script>
   <% } %>
 
-</div><!-- /lm-app -->
-</body>
+</div></body>
 </html>

@@ -118,7 +118,7 @@
       <div class="d-file">
         <span class="fl-label">첨부파일</span>
         <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.05 12.25 20.2a5 5 0 0 1-7.07-7.07l9.19-9.19a3 3 0 0 1 4.24 4.24l-9.2 9.19a1 1 0 0 1-1.41-1.41l8.49-8.5"/></svg>
-        <a href="../upload/<%= msg.getFile_path() %>" download="<%= msg.getFile_path() %>"><%= msg.getFile_path() %></a>
+        <a href="<%= request.getContextPath() %>/upload/<%= java.net.URLEncoder.encode(msg.getFile_path(), "UTF-8").replaceAll("\\+", "%20") %>" download="<%= msg.getFile_path() %>"><%= msg.getFile_path() %></a>
       </div>
     <% } %>
     <div class="d-divider"></div>
