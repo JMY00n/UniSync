@@ -3,6 +3,9 @@
 <%@ page import="com.oreilly.servlet.multipart.DefaultFileRenamePolicy" %>
 <%@ page import="channel.MessageDAO" %>
 <%@ page import="channel.MessageVO" %>
+<%-- 🍎 맥북 한글 처리를 위해 꼭 필요한 필수 패키지 2개 추가 🍎 --%>
+<%@ page import="java.io.File" %>
+<%@ page import="java.text.Normalizer" %>
 <%
     request.setCharacterEncoding("utf-8");
     String userId = (String) session.getAttribute("user_id");
@@ -13,7 +16,7 @@
     int maxSize = 20 * 1024 * 1024; // 강의자료니까 용량을 좀 더 넉넉히 20MB로 설정!
     String encoding = "UTF-8";
     try {
-    	// 2. 파일 업로드 실행 및 중복 파일명 자동 변경 정책(DefaultFileRenamePolicy) 적용
+        // 2. 파일 업로드 실행 및 중복 파일명 자동 변경 정책(DefaultFileRenamePolicy) 적용
         MultipartRequest multi = new MultipartRequest(request, savePath, maxSize, encoding, new DefaultFileRenamePolicy());
         
         int channel_id = Integer.parseInt(multi.getParameter("channel_id"));
@@ -23,6 +26,23 @@
         
      // 3. 업로드 완료 후 실제 저장된 파일 이름만 추출하여 DB 저장을 위해 준비
         String fileName = multi.getFilesystemName("uploadFile");
+        
+        // 🍎 [맥북 한글 자소 분리(NFD) 완벽 해결 코드] 🍎
+        if (fileName != null) {
+            // 맥북식으로 쪼개진 한글을 윈도우식(NFC)으로 꽉 합치기
+            String nfcName = Normalizer.normalize(fileName, Normalizer.Form.NFC);
+            
+            // 이름이 달라졌다면 (맥북에서 올린 파일이라면)
+            if (!fileName.equals(nfcName)) {
+                // 물리적인 파일 이름도 합쳐진 정상 한글로 강제 변경
+                File oldFile = new File(savePath, fileName);
+                File newFile = new File(savePath, nfcName);
+                if (oldFile.renameTo(newFile)) {
+                    // DB에 넣을 변수도 정상 한글 이름으로 교체!
+                    fileName = nfcName; 
+                }
+            }
+        }
         
         MessageVO msg = new MessageVO();
         msg.setChannel_id(channel_id);
