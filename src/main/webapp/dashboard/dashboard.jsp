@@ -116,7 +116,6 @@
             int ri = 0;
             for (ChannelVO c : channelList) {
                 String cls = "c" + ((ri % 3) + 1);
-        %>
         <a class="ri <%= cls %>" href="../channel/lectures/lectureMain.jsp?channel_id=<%= c.getChannel_id() %>" title="<%= c.getChannel_name() %>"><%= two(c.getChannel_name()) %></a>
         <%      ri++;
             }
