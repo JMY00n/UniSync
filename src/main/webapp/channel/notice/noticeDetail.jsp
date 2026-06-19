@@ -176,7 +176,142 @@
         </div>
       <% } %>
     </div>
+
+    <!-- ===== 댓글 영역 ===== -->
+    <div style="margin-top:26px; background:#fff; border:1px solid rgba(0,0,0,0.08); border-radius:10px; padding:24px 26px 28px;">
+      <div style="display:flex; align-items:center; gap:8px; font-size:17px; font-weight:800; color:#17171A; margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#342F92" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        댓글 <span id="cmtCount" style="color:#342F92;">0</span>
+      </div>
+
+      <!-- 작성 박스 -->
+      <div style="display:flex; flex-direction:column; gap:10px; padding:14px; border:1px solid rgba(0,0,0,0.08); border-radius:12px; background:#FAFAFA; margin-bottom:22px;">
+        <textarea id="cmtInput" placeholder="댓글을 입력하세요" style="width:100%; min-height:64px; resize:vertical; border:1px solid rgba(0,0,0,0.14); border-radius:9px; padding:11px 13px; font-size:14.5px; line-height:1.6; color:#2B2B30; background:#fff; box-sizing:border-box;"></textarea>
+        <div style="display:flex; justify-content:flex-end;">
+          <button type="button" onclick="submitComment()" style="display:inline-flex; align-items:center; gap:6px; height:38px; padding:0 18px; border:none; border-radius:10px; background:#342F92; color:#fff; font-size:14px; font-weight:700; cursor:pointer;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="15" height="15"><path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/></svg>
+            등록
+          </button>
+        </div>
+      </div>
+
+      <div id="commentListArea"></div>
+    </div>
   </div>
 </div>
+
+<script>
+  const COMMENT_MESSAGE_ID = <%= message_id %>;
+  let currentCommentPage = 1;
+
+  // 목록 불러오기 (현재 페이지 기준) → #commentListArea 갱신
+  function loadComments() {
+    fetch('getCommentListAjax.jsp?message_id=' + COMMENT_MESSAGE_ID + '&page=' + currentCommentPage)
+      .then(response => response.text())
+      .then(html => {
+        document.getElementById('commentListArea').innerHTML = html;
+        // 서버가 보정한 페이지/총개수를 다시 읽어 동기화
+        const meta = document.getElementById('cmtMeta');
+        if (meta) {
+          currentCommentPage = parseInt(meta.dataset.page) || 1;
+          const cnt = document.getElementById('cmtCount');
+          if (cnt) cnt.textContent = meta.dataset.count || '0';
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  // 페이지 이동
+  function goCommentPage(n) {
+    if (n < 1) return;
+    currentCommentPage = n;
+    loadComments();
+  }
+
+  // 댓글 등록 → 최신순이라 1페이지로 이동
+  function submitComment() {
+    const contentObj = document.getElementById('cmtInput');
+    const content = contentObj.value.trim();
+    if (!content) { alert('댓글 내용을 입력해주세요.'); contentObj.focus(); return; }
+
+    fetch('writeCommentAjax.jsp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'message_id=' + COMMENT_MESSAGE_ID + '&content=' + encodeURIComponent(content)
+    })
+    .then(response => response.text())
+    .then(result => {
+      if (result.trim() === 'success') { contentObj.value = ''; currentCommentPage = 1; loadComments(); }
+      else { alert('댓글 등록에 실패했습니다.'); }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  // 인라인 수정 시작 — 내용 div를 숨기고 그 자리에 편집 박스 삽입
+  function editComment(id) {
+    if (document.getElementById('cmt_edit_' + id)) return; // 이미 편집 중
+    const div = document.getElementById('cmt_content_' + id);
+    const original = div.innerText;
+    div.style.display = 'none';
+
+    const box = document.createElement('div');
+    box.id = 'cmt_edit_' + id;
+    box.style.cssText = 'margin-top:6px; display:flex; flex-direction:column; gap:8px;';
+    box.innerHTML =
+      '<textarea style="width:100%; min-height:60px; resize:vertical; border:1px solid #342F92; border-radius:9px; padding:9px 12px; font-size:14.5px; line-height:1.6; color:#2B2B30; background:#fff; box-sizing:border-box;"></textarea>' +
+      '<div style="display:flex; gap:7px;">' +
+        '<button type="button" onclick="saveCommentEdit(' + id + ')" style="height:32px; padding:0 14px; border:none; border-radius:8px; background:#342F92; color:#fff; font-size:13px; font-weight:700; cursor:pointer;">저장</button>' +
+        '<button type="button" onclick="cancelCommentEdit(' + id + ')" style="height:32px; padding:0 14px; border:1px solid rgba(0,0,0,0.14); border-radius:8px; background:#fff; color:#52525B; font-size:13px; font-weight:700; cursor:pointer;">취소</button>' +
+      '</div>';
+    const ta = box.querySelector('textarea');
+    ta.value = original; // value로 주입
+    div.parentNode.insertBefore(box, div.nextSibling);
+    ta.focus();
+  }
+
+  function cancelCommentEdit(id) {
+    const box = document.getElementById('cmt_edit_' + id);
+    if (box) box.remove();
+    const div = document.getElementById('cmt_content_' + id);
+    if (div) div.style.display = '';
+  }
+
+  function saveCommentEdit(id) {
+    const box = document.getElementById('cmt_edit_' + id);
+    const content = box.querySelector('textarea').value.trim();
+    if (!content) { alert('댓글 내용을 입력해주세요.'); return; }
+
+    fetch('updateCommentAjax.jsp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'comment_id=' + id + '&content=' + encodeURIComponent(content)
+    })
+    .then(response => response.text())
+    .then(result => {
+      if (result.trim() === 'success') { loadComments(); }
+      else { alert('수정에 실패했습니다. 본인 댓글인지 확인해주세요.'); }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  function deleteComment(id) {
+    if (!confirm('이 댓글을 삭제할까요?')) return;
+    fetch('deleteCommentAjax.jsp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: 'comment_id=' + id
+    })
+    .then(response => response.text())
+    .then(result => {
+      if (result.trim() === 'success') { loadComments(); }
+      else { alert('삭제에 실패했습니다. 본인 댓글인지 확인해주세요.'); }
+    })
+    .catch(error => console.error('Error:', error));
+  }
+
+  window.onload = function() {
+    loadComments();
+  };
+</script>
 </body>
 </html>
