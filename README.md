@@ -116,9 +116,10 @@ JSP 기말과제로 진행한 팀 프로젝트입니다.
 ---
 
 ## 발표 자료
+## 발표 자료
 
-<a href="실제_구글슬라이드_링크">
-  <img width="500" alt="발표자료 미리보기" src="표지_이미지_URL" />
+<a href="구글슬라이드_뷰어권한_링크">
+  <img width="500" alt="발표자료 미리보기" src="표지이미지_URL" />
 </a>
 
-[![Google Slides](https://docs.google.com/presentation/d/1F72qbCxb_CTDTdi4ajat8840jMobsMoG2kxbz3bWL0Q/edit?usp=sharing)
+[![Google Slides]([https://img.shields.io/badge/Google_Slides-발표자료_보기-FBBC04?style=for-the-badge&logo=googleslides&logoColor=white)](구글슬라이드_뷰어권한_링크](https://docs.google.com/presentation/d/1F72qbCxb_CTDTdi4ajat8840jMobsMoG2kxbz3bWL0Q/edit?usp=sharing))
